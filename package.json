@@ -1,0 +1,40 @@
+{
+  "name": "webjs-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NicksQ69/webjs-project"
+  },
+  "bugs": "",
+  "keywords": [],
+  "author": {
+    "name": "Nicolas Barboteu",
+    "email": "nicolas.barboteu@etu.toulouse-inp.fr"
+  },
+  "contributors": [
+    {
+      "name": "Jérémy Segur",
+      "email": "jeremy.segur@etu.toulouse-inp.fr"
+    },
+    {
+      "name": "Matteo Georges",
+      "email": "matteo.georges@etu.toulouse-inp.fr"
+    }
+  ],
+  "scripts": {
+    "dev": "",
+    "test": ""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
