@@ -1,5 +1,6 @@
 // Import de la bibliotheque SQLite3
-const sqlite3 = require('sqlite3').verbose();
+import sqlite3 from 'sqlite3';
+
 
 // Connection à la base de données
 const db = new sqlite3.Database('database/database.db', (err) => {
@@ -12,9 +13,9 @@ const db = new sqlite3.Database('database/database.db', (err) => {
 
   db.run(
     `
-    CREATE TABLE IF NOT EXISTS “users” (
-      “username” TEXT PRIMARY KEY,
-      “password” TEXT
+    CREATE TABLE IF NOT EXISTS users (
+      username TEXT PRIMARY KEY,
+      password TEXT
     );
     `
   , (err) => {
@@ -26,8 +27,8 @@ const db = new sqlite3.Database('database/database.db', (err) => {
       db.run(
         `
         CREATE TABLE directories ( 
-          id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-          directory int(11),
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          directory INT NOT NULL,
           name TEXT NOT NULL, 
           FOREIGN KEY(directory) REFERENCES directories(id)
         );
@@ -41,8 +42,8 @@ const db = new sqlite3.Database('database/database.db', (err) => {
           db.run(
             `
             CREATE TABLE files ( 
-              id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-              directory int(11) NOT NULL,
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              directory INT NOT NULL,
               name TEXT NOT NULL, 
               file BLOB NOT NULL,
               FOREIGN KEY(directory) REFERENCES directories(id)

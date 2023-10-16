@@ -1,49 +1,107 @@
-// Import des bibliothèques
-const express = require('express');
-const { Database } = require('sqlite3');
-const sqlite3 = require('sqlite3'.verbose());
+import express from 'express';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import sqlite3 from 'sqlite3';
+import session from 'express-session';
+import bodyParser from 'body-parser';
 
-const app = express()
+const app = express();
 
-// Configuration de l'application Express pour traiter les données de formulaire
-app.use(express.urlencoded({ extended: false}));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Création d'une connection à la base de donnée SQLite
-const db = new sqlite3.Database(Database/database.db, err => {
+const __public = __dirname + "/public";
+
+app.use(express.static(__public));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+
+app.get('/', function (request, response) {
+  response.sendFile(__public + "/login_page/login.html");
+});
+
+const db = new sqlite3.Database('database/database.db', (err) => {
+  if (err) {
+    console.error('Erreur lors de l\'ouverture de la base de données :', err.message);
+  } else {
+    console.log('Connexion à la base de données réussie.');
+  }
+});
+
+app.use(
+  session({
+    secret: 'votre_secret',
+    resave: false,
+    saveUninitialized: true,
+    store: mongoStore,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+  done(null, user.username);
+});
+
+passport.deserializeUser((username, done) => {
+  // Récupérez l'utilisateur à partir de la base de données en utilisant l'ID
+  db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
     if (err) {
-        console.error('Erreur lors de l\'ouverture de la base de données :', err.message);
-    }else{
-        console.log('Connexion à la base de donnée réussie.');
+      return done(err, null);
     }
+    done(null, row); // L'utilisateur est désérialisé
+  });
 });
 
+passport.use(new LocalStrategy(
+  (username, password, done) => {
+    console.log("La stratégie Passport est exécutée.");
+    db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+      if (err) {
+        console.error('Erreur lors de la vérification du login :', err.message);
+        return done(err);
+      }
+      if (!row) {
+        console.log('Login inconnu');
+        return done(null, false, { message: 'Login inconnu' });
+      }
+      if (row.password != password) {
+        console.log('Mot de passe incorrect');
+        return done(null, false, { message: 'Mot de passe incorrect' });
+      }
+      console.log('Login et mot de passe corrects');
+      return done(null, row);
+    });
+  }
+));
 
-// ---- Creation d'un utilisateur ----
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    // Si l'utilisateur est authentifié, continuez
+    return next();
+  }
+  // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
+  res.redirect('/');
+}
 
-// Définition d'une route pour gérer la soumission de formulaire
-app.post('/creer-utilisateur', (req, res) => {
-    // Récupération des données du formulaire à partir de la demande POST
-    const username = req.body.username;
-    const password = req.body.password;
 
-    // Insertion des données de l'utilisateur dans la base de donnée
-    db.run(
-        'INSERT INTO users (username, password) VALUES (?, ?)',
-        [username, password],
-        
-        (err) => {
-            if (err) {
-                console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
-                res.send('Erreur lors de la création de l\'utilisateur.');
-            } else {
-                console.log('Utilisateur crée avec succès.');
-                res.send('Utilisateur créé avec succès.')
-            }
-        }
-    );
+app.post('/login', (req, res, next) => {
+  console.log('Route /login is reached');
+  next(); // Continue with authentication
+}, passport.authenticate('local', {
+  successRedirect: '/secret',
+  failureRedirect: '/',
+}), (req, res) => {
+  console.log('Authentication completed');
 });
 
-// Lancement du serveur sur le port 3000
-app.listen(3000, () => {
-    console.log('Serveur en cours d\'écoute sur le port 3000');
+app.get('/secret', ensureAuthenticated, function (req, res) {
+  res.sendFile(__public + '/login_page/secret_page.html');
+});
+
+app.listen(3000, function () {
+  console.log("Server listening on port 3000");
 });
