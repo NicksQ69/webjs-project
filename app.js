@@ -6,6 +6,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import sqlite3 from 'sqlite3';
 import session from 'express-session';
 import bodyParser from 'body-parser';
+import SQLiteStore from 'connect-sqlite3';
 
 const app = express();
 
@@ -30,12 +31,19 @@ const db = new sqlite3.Database('database/database.db', (err) => {
   }
 });
 
+const sqliteStore = new SQLiteStore(session)({
+  db: 'sessions.db',
+  dir: __dirname + '/database', // Assurez-vous que le répertoire existe
+  concurrentDB: true
+});
+
 app.use(
   session({
     secret: 'votre_secret',
     resave: false,
     saveUninitialized: true,
-    store: mongoStore,
+    store: sqliteStore,
+    cookie: { maxAge: 1000 } // 10 minutes en millisecondes
   })
 );
 
