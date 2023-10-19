@@ -4,12 +4,12 @@ import sqlite3 from 'sqlite3';
 
 // Connection à la base de données
 const db = new sqlite3.Database('database/database.db', (err) => {
-    if (err) {
-      console.error('Erreur lors de l\'ouverture de la base de données :', err.message);
-    } else {
-      console.log('Connexion à la base de données réussie.');
-    }
-  });
+  if (err) {
+    console.error('Erreur lors de l\'ouverture de la base de données :', err.message);
+  } else {
+    console.log('Connexion à la base de données réussie.');
+  }
+});
 
   db.run(
     `
@@ -60,8 +60,3 @@ const db = new sqlite3.Database('database/database.db', (err) => {
       });
     }
   });
-
-  
-
-  
-

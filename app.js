@@ -10,6 +10,8 @@ import SQLiteStore from 'connect-sqlite3';
 
 const app = express();
 
+// Configuration de l'application Express pour traiter les données de formulaire
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -22,6 +24,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.get('/', function (request, response) {
   response.sendFile(__public + "/login_page/login.html");
 });
+
+// Création d'une connexion à la base de données SQLite
 
 const db = new sqlite3.Database('database/database.db', (err) => {
   if (err) {
@@ -36,6 +40,44 @@ const sqliteStore = new SQLiteStore(session)({
   dir: __dirname + '/database', // Assurez-vous que le répertoire existe
   concurrentDB: true
 });
+
+// ---- Création d'un utilisateur ----
+
+// Ouverture du fichier html du formulaire
+app.get('/create_user'), (request, response) => {
+  response.sendFile(__public + "/login_page/create_user.html");
+};
+
+// Définition d'une route pour gérer la soumission de formulaire
+app.post('/creer_utilisateur', (req, res) => {
+    // Récupération des données du formulaire à partir de la demande POST
+    const username = req.body.username;
+    const password = req.body.password;
+
+    console.log(username, password);
+
+    // Insertion des données de l'utilisateur dans la base de données
+    db.run(
+        'INSERT INTO users (username, password) VALUES (?, ?)',
+        [username, password],
+
+        (err) => {
+            if (err) {
+                console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
+                res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
+                res.redirect("/");
+            } else {
+                console.log('Utilisateur créé avec succès.');
+                res.cookie("user_creation", "Utilisateur créé avec succès.");
+                res.redirect("/");
+            }
+        }
+    );
+});
+
+
+// ---- Gestion login ----
+
 
 app.use(
   session({
