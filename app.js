@@ -8,9 +8,8 @@ import session from 'express-session';
 import bodyParser from 'body-parser';
 import SQLiteStore from 'connect-sqlite3';
 
-const app = express();
-
 // Configuration de l'application Express pour traiter les données de formulaire
+const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,9 +20,23 @@ app.use(express.static(__public));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
+// ---- Routes ----
+
+// Route vers la page principale
 app.get('/', function (request, response) {
   response.sendFile(__public + "/login_page/login.html");
 });
+
+// Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
+app.get('/create_user', function (request, response) {
+  response.sendFile(__public + "/login_page/create_user.html");
+});
+
+app.get('/secret', ensureAuthenticated, function (req, res) {
+  res.sendFile(__public + '/login_page/secret_page.html');
+});
+
 
 // Création d'une connexion à la base de données SQLite
 
@@ -41,12 +54,7 @@ const sqliteStore = new SQLiteStore(session)({
   concurrentDB: true
 });
 
-// ---- Création d'un utilisateur ----
-
-// Ouverture du fichier html du formulaire
-app.get('/create_user'), (request, response) => {
-  response.sendFile(__public + "/login_page/create_user.html");
-};
+// ---- Création d'un nouvel utilisateur ----
 
 // Définition d'une route pour gérer la soumission de formulaire
 app.post('/creer_utilisateur', (req, res) => {
@@ -76,8 +84,7 @@ app.post('/creer_utilisateur', (req, res) => {
 });
 
 
-// ---- Gestion login ----
-
+// ---- Gestion du login ----
 
 app.use(
   session({
@@ -148,10 +155,7 @@ app.post('/login', (req, res, next) => {
   console.log('Authentication completed');
 });
 
-app.get('/secret', ensureAuthenticated, function (req, res) {
-  res.sendFile(__public + '/login_page/secret_page.html');
-});
-
+// Le serveur écoute sur le port 3000 de Localhost
 app.listen(3000, function () {
   console.log("Server listening on port 3000");
 });
