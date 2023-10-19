@@ -5,6 +5,8 @@
     </head>
     <body>
         <h1>Login</h1>
+        <div id="msg_cookie">
+        </div>
         <form action="/login" method="POST">
             <label for="login">Username:</label>
             <input type="text" id="login" name="username"><br><br>
@@ -12,5 +14,9 @@
             <input type="password" id="password" name="password"><br><br>
             <input type="submit" value="Submit">
         </form>
+        <div>
+            <br>
+            Vous n'avez pas de compte ? <a href="/create_user">Créer un compte</a>
+        </div>
     </body>
 </html>

@@ -50,7 +50,7 @@ const db = new sqlite3.Database('database/database.db', (err) => {
 
 const sqliteStore = new SQLiteStore(session)({
   db: 'sessions.db',
-  dir: __dirname + '/database', // Assurez-vous que le répertoire existe
+  dir: __dirname + '/database',
   concurrentDB: true
 });
 
@@ -92,7 +92,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     store: sqliteStore,
-    cookie: { maxAge: 1000 } // 10 minutes en millisecondes
+    cookie: { maxAge: 60000 } // 10 minutes en millisecondes
   })
 );
 
