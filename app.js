@@ -33,10 +33,6 @@ app.get('/create_user', function (request, response) {
   response.sendFile(__public + "/login_page/create_user.html");
 });
 
-app.get('/secret', ensureAuthenticated, function (req, res) {
-  res.sendFile(__public + '/login_page/secret_page.html');
-});
-
 
 // Création d'une connexion à la base de données SQLite
 
@@ -65,22 +61,35 @@ app.post('/creer_utilisateur', (req, res) => {
     console.log(username, password);
 
     // Insertion des données de l'utilisateur dans la base de données
-    db.run(
-        'INSERT INTO users (username, password) VALUES (?, ?)',
-        [username, password],
-
-        (err) => {
-            if (err) {
-                console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
-                res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
-                res.redirect("/");
-            } else {
-                console.log('Utilisateur créé avec succès.');
-                res.cookie("user_creation", "Utilisateur créé avec succès.");
-                res.redirect("/");
-            }
-        }
-    );
+    db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+      if (err) {
+        console.error('Erreur lors de la vérification du login :', err.message);
+        res.redirect("/create_user");
+      }
+      if (row) {
+        console.error('Login déja existant');
+        res.cookie("user_creation", "Login déja existant");
+        res.redirect("/create_user");
+      }else{
+        db.run(
+          'INSERT INTO users (username, password) VALUES (?, ?)',
+          [username, password],
+  
+          (err) => {
+              if (err) {
+                  console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
+                  res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
+                  res.redirect("/");
+              } else {
+                  console.log('Utilisateur créé avec succès.');
+                  res.cookie("user_creation", "Utilisateur créé avec succès.");
+                  res.redirect("/");
+              }
+          }
+        );
+      }
+    });
+    
 });
 
 
@@ -144,6 +153,9 @@ function ensureAuthenticated(req, res, next) {
   res.redirect('/');
 }
 
+app.get('/secret', ensureAuthenticated, function (req, res) {
+  res.sendFile(__public + '/login_page/secret_page.html');
+});
 
 app.post('/login', (req, res, next) => {
   console.log('Route /login is reached');
