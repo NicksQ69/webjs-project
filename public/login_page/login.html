@@ -7,6 +7,7 @@
         <h1>Login</h1>
         <div id="msg_cookie">
         </div>
+        <br>
         <form action="/login" method="POST">
             <label for="login">Username:</label>
             <input type="text" id="login" name="username"><br><br>
@@ -20,3 +21,25 @@
         </div>
     </body>
 </html>
+
+<script>
+    function getCookie(name) {
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.split('=');
+        if (cookieName === name) {
+            return cookieValue;
+        }
+    }
+    return null;
+}
+
+const monCookieValue = decodeURIComponent(getCookie("authentification"));
+document.cookie = "authentification" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+const div_cookie = document.getElementById("msg_cookie");
+
+if (monCookieValue != "null"){
+    div_cookie.textContent = monCookieValue;
+}
+
+</script>

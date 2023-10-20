@@ -92,7 +92,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     store: sqliteStore,
-    cookie: { maxAge: 60000 } // 10 minutes en millisecondes
+    cookie: { maxAge: 600000 } // 10 minutes en millisecondes
   })
 );
 
@@ -141,6 +141,7 @@ function ensureAuthenticated(req, res, next) {
     return next();
   }
   // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
+  res.cookie("authentification", "La session a expirée, veillez vous reconnecter")
   res.redirect('/');
 }
 
@@ -155,7 +156,23 @@ app.post('/login', (req, res, next) => {
   console.log('Authentication completed');
 });
 
-// Le serveur écoute sur le port 3000 de Localhost
+app.get('/logout', (req, res) => {
+  // Détruit la session de l'utilisateur
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Erreur lors de la déconnexion :', err);
+    } else {
+      console.log('Utilisateur déconnecté');
+    }
+    // Redirigez l'utilisateur vers la page de connexion ou une autre page appropriée
+    res.redirect('/');
+  });
+});
+
+app.get('/secret', ensureAuthenticated, function (req, res) {
+  res.sendFile(__public + '/login_page/secret_page.html');
+});
+
 app.listen(3000, function () {
   console.log("Server listening on port 3000");
 });
