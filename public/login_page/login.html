@@ -5,6 +5,9 @@
     </head>
     <body>
         <h1>Login</h1>
+        <div id="msg_cookie">
+        </div>
+        <br>
         <form action="/login" method="POST">
             <label for="login">Username:</label>
             <input type="text" id="login" name="username"><br><br>
@@ -12,5 +15,38 @@
             <input type="password" id="password" name="password"><br><br>
             <input type="submit" value="Submit">
         </form>
+        <div>
+            <br>
+            Vous n'avez pas de compte ? <a href="/create_user">Créer un compte</a>
+        </div>
     </body>
 </html>
+
+<script>
+    function getCookie(name) {
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.split('=');
+        if (cookieName === name) {
+            return cookieValue;
+        }
+    }
+    return null;
+}
+//cookie qui indique que la session a expiré
+const monCookieValue = decodeURIComponent(getCookie("authentification"));
+document.cookie = "authentification" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+//cookie qui indique qu'un user a été crée
+const cookieuser = decodeURIComponent(getCookie("user_creation"));
+document.cookie = "user_creation" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+const div_cookie = document.getElementById("msg_cookie");
+
+if (monCookieValue != "null"){
+    div_cookie.textContent = monCookieValue;
+}
+if (cookieuser != "null"){
+    div_cookie.textContent = cookieuser;
+}
+
+</script>
