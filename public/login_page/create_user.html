@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Formulaire de création d'utilisateur</title>
+    </head>
+    
+    <body>
+        <h1>Formulaire de création d'utilisateur</h1>
+        
+        <div id="msg_cookie">
+        </div><br>
+
+        <form action="/creer_utilisateur" method="POST">
+            <label for="username">Nom utilisateur :</label>
+            <input type="text" id="username" name="username" required><br><br>
+
+            <label for="password">Mot de passe :</label>
+            <input type="password" id ="password" name="password" required><br><br>
+
+            <button type="submit">Créer un utilisateur</button>
+        </form>
+    </body>
+</html>
+
+<script>
+    // Fonction pour récupérer un cookie par son nom
+    function getCookie(name) {
+        const cookies = document.cookie.split('; ');
+        for (const cookie of cookies) {
+            const [cookieName, cookieValue] = cookie.split('=');
+            if (cookieName === name) {
+                return cookieValue;
+            }
+        }
+        return null;
+    }
+
+    // Récupérer le cookie "monCookie"
+    const monCookieValue = decodeURIComponent(getCookie("user_creation"));
+    document.cookie = 'user_creation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+    // Afficher la valeur du cookie
+    const msg = document.getElementById("msg_cookie");
+    console.log(monCookieValue)
+
+    if(monCookieValue != "null"){
+        msg.textContent = ""+monCookieValue;
+    }
+    
+</script>
+
+
+
