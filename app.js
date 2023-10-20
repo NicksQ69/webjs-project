@@ -28,11 +28,56 @@ app.get('/', function (request, response) {
   response.sendFile(__public + "/login_page/login.html");
 });
 
-// Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
-app.get('/create_user', function (request, response) {
-  response.sendFile(__public + "/login_page/create_user.html");
+// Créer une route pour récupérer les Users de la bd
+app.get('/api/getUsers', (req, res) => {
+  const query = 'SELECT * FROM users';
+  db.all(query, (err, rows) => {
+      if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+      }
+      console.log(rows)
+  });
 });
 
+// Créer une route pour récupérer les Files de la bd
+app.get('/api/getFiles', (req, res) => {
+  const query = 'SELECT * FROM files';
+  db.all(query, (err, rows) => {
+      if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+      }
+      console.log(rows)
+  });
+});
+
+// Créer une route pour récupérer les Directories de la bd
+app.get('/api/getDirectories', (req, res) => {
+  const query = 'SELECT * FROM directories';
+  db.all(query, (err, rows) => {
+      if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+      }
+      console.log(rows)
+  });
+});
+
+// Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
+app.get('/create_user', function (request, response) {
+  db.get('SELECT * FROM users', (err, row) => {
+    if (err) {
+      console.error('Erreur Liste des users :', err.message);
+      res.redirect("/create_user");
+    }
+    if (row) {
+      console.log(row.rows.item(0));
+    }
+  }
+)
+  response.sendFile(__public + "/login_page/create_user.html");
+});
 
 // Création d'une connexion à la base de données SQLite
 
