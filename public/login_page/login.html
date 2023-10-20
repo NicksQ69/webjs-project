@@ -33,13 +33,20 @@
     }
     return null;
 }
-
+//cookie qui indique que la session a expiré
 const monCookieValue = decodeURIComponent(getCookie("authentification"));
 document.cookie = "authentification" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+//cookie qui indique qu'un user a été crée
+const cookieuser = decodeURIComponent(getCookie("user_creation"));
+document.cookie = "user_creation" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
 const div_cookie = document.getElementById("msg_cookie");
 
 if (monCookieValue != "null"){
     div_cookie.textContent = monCookieValue;
+}
+if (cookieuser != "null"){
+    div_cookie.textContent = cookieuser;
 }
 
 </script>

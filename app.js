@@ -7,6 +7,7 @@ import sqlite3 from 'sqlite3';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import SQLiteStore from 'connect-sqlite3';
+import fs from 'fs';
 
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
@@ -33,10 +34,6 @@ app.get('/create_user', function (request, response) {
   response.sendFile(__public + "/login_page/create_user.html");
 });
 
-app.get('/secret', ensureAuthenticated, function (req, res) {
-  res.sendFile(__public + '/login_page/secret_page.html');
-});
-
 
 // Création d'une connexion à la base de données SQLite
 
@@ -58,29 +55,43 @@ const sqliteStore = new SQLiteStore(session)({
 
 // Définition d'une route pour gérer la soumission de formulaire
 app.post('/creer_utilisateur', (req, res) => {
-    // Récupération des données du formulaire à partir de la demande POST
-    const username = req.body.username;
-    const password = req.body.password;
+  // Récupération des données du formulaire à partir de la demande POST
+  const username = req.body.username;
+  const password = req.body.password;
 
-    console.log(username, password);
+  console.log(username, password);
 
-    // Insertion des données de l'utilisateur dans la base de données
-    db.run(
-        'INSERT INTO users (username, password) VALUES (?, ?)',
-        [username, password],
+  // Insertion des données de l'utilisateur dans la base de données
+  db.run(
+    'INSERT INTO users (username, password) VALUES (?, ?)',
+    [username, password],
 
-        (err) => {
-            if (err) {
-                console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
-                res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
-                res.redirect("/");
-            } else {
-                console.log('Utilisateur créé avec succès.');
-                res.cookie("user_creation", "Utilisateur créé avec succès.");
-                res.redirect("/");
-            }
-        }
-    );
+    (err) => {
+      if (err) {
+        console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
+        res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
+        res.redirect("/");
+      } else {
+        console.log('Utilisateur créé avec succès.');
+        res.cookie("user_creation", "Utilisateur créé avec succès.");
+        
+        //crée un nouveau dossier pour l'user
+        const userFolder = `./storage/User_${username}`;
+        fs.mkdir(userFolder, { recursive: true }, (err) => {
+          if (err) {
+            console.error('Erreur lors de la création du dossier utilisateur :', err);
+            // Gérez l'erreur (par exemple, renvoyez une réponse d'erreur)
+            console.log('Erreur lors de la création du dossier utilisateur');
+          } else {
+            // Dossier utilisateur créé avec succès
+            // Répondez avec un message de succès ou effectuez d'autres actions nécessaires
+            console.log('Dossier utilisateur créé avec succès');
+          }
+        });
+        res.redirect("/");
+      }
+    }
+  );
 });
 
 
@@ -135,17 +146,6 @@ passport.use(new LocalStrategy(
   }
 ));
 
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    // Si l'utilisateur est authentifié, continuez
-    return next();
-  }
-  // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
-  res.cookie("authentification", "La session a expirée, veillez vous reconnecter")
-  res.redirect('/');
-}
-
-
 app.post('/login', (req, res, next) => {
   console.log('Route /login is reached');
   next(); // Continue with authentication
@@ -168,6 +168,16 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
   });
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    // Si l'utilisateur est authentifié, continuez
+    return next();
+  }
+  // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
+  res.cookie("authentification", "La session a expirée, veillez vous reconnecter")
+  res.redirect('/');
+}
 
 app.get('/secret', ensureAuthenticated, function (req, res) {
   res.sendFile(__public + '/login_page/secret_page.html');
