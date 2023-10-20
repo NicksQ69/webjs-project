@@ -11,13 +11,13 @@ import SQLiteStore from 'connect-sqlite3';
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
 
+// Définition de la racine du projet et de la racine des fichier public
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
 const __public = __dirname + "/public";
 
+// Midleware
 app.use(express.static(__public));
-
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
