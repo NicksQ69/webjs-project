@@ -7,6 +7,7 @@ import sqlite3 from 'sqlite3';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import SQLiteStore from 'connect-sqlite3';
+import fs from 'node:fs';
 
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
@@ -115,7 +116,7 @@ app.get('/create_user', function (request, response) {
       res.redirect("/create_user");
     }
     if (row) {
-      console.log(row.rows.item(0));
+      //console.log(row.rows.item(0));
     }
   }
 )
@@ -159,6 +160,13 @@ app.post('/creer_utilisateur', (req, res) => {
         res.cookie("user_creation", "Login déja existant");
         res.redirect("/create_user");
       }else{
+        fs.mkdir(__public + '/storage/' + username, (error) => {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log(username + " directory created successfully !!");
+          }
+        });
         db.run(
           'INSERT INTO users (username, password) VALUES (?, ?)',
           [username, password],
