@@ -7,11 +7,7 @@ import sqlite3 from 'sqlite3';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import SQLiteStore from 'connect-sqlite3';
-<<<<<<< HEAD
 import fs from 'fs';
-=======
-import fs from 'node:fs';
->>>>>>> 72cd5d8 (wip)
 
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
@@ -114,16 +110,6 @@ app.get('/api/getDirectories', (req, res) => {
 
 // Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
 app.get('/create_user', function (request, response) {
-  db.get('SELECT * FROM users', (err, row) => {
-    if (err) {
-      console.error('Erreur Liste des users :', err.message);
-      res.redirect("/create_user");
-    }
-    if (row) {
-      //console.log(row.rows.item(0));
-    }
-  }
-)
   response.sendFile(__public + "/login_page/create_user.html");
 });
 
@@ -160,26 +146,6 @@ app.post('/creer_utilisateur', (req, res) => {
 
     (err) => {
       if (err) {
-<<<<<<< HEAD
-        console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
-        res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
-        res.redirect("/");
-      } else {
-        console.log('Utilisateur créé avec succès.');
-        res.cookie("user_creation", "Utilisateur créé avec succès.");
-        
-        //crée un nouveau dossier pour l'user
-        const userFolder = `./storage/User_${username}`;
-        fs.mkdir(userFolder, { recursive: true }, (err) => {
-          if (err) {
-            console.error('Erreur lors de la création du dossier utilisateur :', err);
-            // Gérez l'erreur (par exemple, renvoyez une réponse d'erreur)
-            console.log('Erreur lors de la création du dossier utilisateur');
-          } else {
-            // Dossier utilisateur créé avec succès
-            // Répondez avec un message de succès ou effectuez d'autres actions nécessaires
-            console.log('Dossier utilisateur créé avec succès');
-=======
         console.error('Erreur lors de la vérification du login :', err.message);
         res.redirect("/create_user");
       }
@@ -188,13 +154,8 @@ app.post('/creer_utilisateur', (req, res) => {
         res.cookie("user_creation", "Login déja existant");
         res.redirect("/create_user");
       }else{
-        fs.mkdir(__public + '/storage/' + username, (error) => {
-          if (error) {
-            console.log(error);
-          } else {
-            console.log(username + " directory created successfully !!");
-          }
-        });
+
+        // Insertion de l'utilisateur dans la base de donnée
         db.run(
           'INSERT INTO users (username, password) VALUES (?, ?)',
           [username, password],
@@ -203,18 +164,38 @@ app.post('/creer_utilisateur', (req, res) => {
               if (err) {
                   console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
                   res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
-                  res.redirect("/");
+                  res.redirect('/');
               } else {
                   console.log('Utilisateur créé avec succès.');
                   res.cookie("user_creation", "Utilisateur créé avec succès.");
-                  res.redirect("/");
               }
->>>>>>> 72cd5d8 (wip)
+          }
+        );
+
+        // Création du Dossier Source de l'utilisateur
+        fs.mkdir(__public + '/storage/root_' + username, (error) => {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log(username + " directory created successfully !!");
           }
         });
-        //creer un fichier dans la bd pour l'user
         
-        res.redirect("/");
+        // Insertion du dossier source de l'utilisateur dans la base de donnée
+        db.run(
+          'INSERT INTO directories (name, owner) VALUES (?, ?)',
+          ['root_' + username, username],
+  
+          (err) => {
+              if (err) {
+                  console.error('Erreur lors de l\'insertion du Dossier :', err.message);
+                  res.redirect('/');
+              } else {
+                  console.log('Dossier créé avec succès.');  
+              }
+              res.redirect('/');
+          }
+        );
       }
     }
   );
