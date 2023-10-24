@@ -142,66 +142,57 @@ app.post('/creer_utilisateur', async (req, res) => {
     const pwdHash = await bcrypt.hash(password, 10);
 
   // Insertion des données de l'utilisateur dans la base de données
-  db.run(
-    'INSERT INTO users (username, password) VALUES (?, ?)',
-    [username, password],
+  db.get('SELECT * FROM users WHERE username = ?', [username], async (err, row) => {
+    if(err){
+      console.error('Erreur lors de la vérification du Username :', err.message);
+      res.redirect("/create_user");
+    }
+    if (row) {
+      console.error('Login déja existant');
+      res.cookie("user_creation", "Login déja existant");
+      res.redirect("/create_user");
+    }
+    // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
+    db.run(
+      'INSERT INTO users (username, password) VALUES (?, ?)',
+      [username, pwdHash],
 
-    (err) => {
-      if (err) {
-        console.error('Erreur lors de la vérification du login :', err.message);
-        res.redirect("/create_user");
-      }
-      if (row) {
-        console.error('Login déja existant');
-        res.cookie("user_creation", "Login déja existant");
-        res.redirect("/create_user");
-      }else{
-
-        // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
-        db.run(
-          'INSERT INTO users (username, password) VALUES (?, ?)',
-          [username, pwdHash],
-  
-          (err) => {
-              if (err) {
-                  console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
-                  res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
-                  res.redirect('/');
-              } else {
-                  console.log('Utilisateur créé avec succès.');
-                  res.cookie("user_creation", "Utilisateur créé avec succès.");
-              }
-          }
-        );
-
-        // Création du Dossier Source de l'utilisateur
-        fs.mkdir(__public + '/storage/root_' + username, (error) => {
-          if (error) {
-            console.log(error);
-          } else {
-            console.log(username + " directory created successfully !!");
-          }
-        });
-        
-        // Insertion du dossier source de l'utilisateur dans la base de donnée
-        db.run(
-          'INSERT INTO directories (name, owner) VALUES (?, ?)',
-          ['root_' + username, username],
-  
-          (err) => {
-              if (err) {
-                  console.error('Erreur lors de l\'insertion du Dossier :', err.message);
-                  res.redirect('/');
-              } else {
-                  console.log('Dossier créé avec succès.');  
-              }
+      (err) => {
+          if (err) {
+              console.error('Erreur lors de l\'insertion de l\'utilisateur :', err.message);
+              res.cookie("user_creation", "Erreur lors de l\'insertion de l\'utilisateur :");
               res.redirect('/');
           }
-        );
+          // Création du Dossier Source de l'utilisateur
+          fs.mkdir(__public + '/storage/root_' + username, (error) => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log(username + " directory created successfully !!");
+            }
+          });
+          
+          // Insertion du dossier source de l'utilisateur dans la base de donnée
+          db.run(
+            'INSERT INTO directories (name, owner) VALUES (?, ?)',
+            ['root_' + username, username],
+    
+            (err) => {
+                if (err) {
+                    console.error('Erreur lors de l\'insertion du Dossier :', err.message);
+                    res.redirect('/');
+                } else {
+                    console.log('Dossier créé avec succès.');  
+                }
+                res.redirect('/');
+            }
+          );
+          console.log('Utilisateur créé avec succès.');
+          res.cookie("user_creation", "Utilisateur créé avec succès.");
       }
-    }
-  );
-});
+    );
+  });
+})
 
 
 // ---- Gestion du login ----
