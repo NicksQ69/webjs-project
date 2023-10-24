@@ -8,6 +8,7 @@ import session from 'express-session';
 import bodyParser from 'body-parser';
 import SQLiteStore from 'connect-sqlite3';
 import fs from 'node:fs';
+import bcrypt from 'bcrypt';
 
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
@@ -132,12 +133,14 @@ const sqliteStore = new SQLiteStore(session)({
 // ---- Création d'un nouvel utilisateur ----
 
 // Définition d'une route pour gérer la soumission de formulaire
-app.post('/creer_utilisateur', (req, res) => {
+app.post('/creer_utilisateur', async (req, res) => {
     // Récupération des données du formulaire à partir de la demande POST
     const username = req.body.username;
-    const password = req.body.password;
+    const password = req.body.password.toString();
 
-    console.log(username, password);
+    // hashage du mot de passe
+    const pwdHash = await bcrypt.hash(password, 10);
+    console.log(username, password, pwdHash);
 
     // Insertion des données de l'utilisateur dans la base de données
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
@@ -151,10 +154,10 @@ app.post('/creer_utilisateur', (req, res) => {
         res.redirect("/create_user");
       }else{
 
-        // Insertion de l'utilisateur dans la base de donnée
+        // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
         db.run(
           'INSERT INTO users (username, password) VALUES (?, ?)',
-          [username, password],
+          [username, pwdHash],
   
           (err) => {
               if (err) {
@@ -239,7 +242,8 @@ passport.use(new LocalStrategy(
         console.log('Login inconnu');
         return done(null, false, { message: 'Login inconnu' });
       }
-      if (row.password != password) {
+      // On compare le mot de passe saisie avec le mot de passe Hash
+      if (bcrypt.compare(password, row.password)) {
         console.log('Mot de passe incorrect');
         return done(null, false, { message: 'Mot de passe incorrect' });
       }
