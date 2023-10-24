@@ -88,6 +88,8 @@ app.post('/creer_utilisateur', (req, res) => {
             console.log('Dossier utilisateur créé avec succès');
           }
         });
+        //creer un fichier dans la bd pour l'user
+        
         res.redirect("/");
       }
     }
@@ -103,7 +105,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     store: sqliteStore,
-    cookie: { maxAge: 600000 } // 10 minutes en millisecondes
+    cookie: { maxAge: 6000000 } // 10 minutes en millisecondes
   })
 );
 
@@ -150,7 +152,7 @@ app.post('/login', (req, res, next) => {
   console.log('Route /login is reached');
   next(); // Continue with authentication
 }, passport.authenticate('local', {
-  successRedirect: '/secret',
+  successRedirect: '/dashboard',
   failureRedirect: '/',
 }), (req, res) => {
   console.log('Authentication completed');
@@ -181,6 +183,10 @@ function ensureAuthenticated(req, res, next) {
 
 app.get('/secret', ensureAuthenticated, function (req, res) {
   res.sendFile(__public + '/login_page/secret_page.html');
+});
+
+app.get('/dashboard', ensureAuthenticated, function (req, res) {
+  res.sendFile(__public + '/dashboard_page/dashboard.html');
 });
 
 app.listen(3000, function () {

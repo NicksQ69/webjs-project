@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Login Page</title>
+        <script src="../common_js/cookie.js"></script>
     </head>
     <body>
         <h1>Login</h1>
@@ -23,16 +24,6 @@
 </html>
 
 <script>
-    function getCookie(name) {
-    const cookies = document.cookie.split('; ');
-    for (const cookie of cookies) {
-        const [cookieName, cookieValue] = cookie.split('=');
-        if (cookieName === name) {
-            return cookieValue;
-        }
-    }
-    return null;
-}
 //cookie qui indique que la session a expiré
 const monCookieValue = decodeURIComponent(getCookie("authentification"));
 document.cookie = "authentification" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
