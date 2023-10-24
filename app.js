@@ -67,7 +67,7 @@ app.get('/api/getFiles', (req, res) => {
 
     // Créez le code HTML à renvoyer
     let html = '<!DOCTYPE html><html><head><title>Liste des fichiers</title></head><body>';
-    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Directory</th><th>Name</th><th>File</th></tr>';
+    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Parent directory</th><th>Name</th><th>File</th></tr>';
 
     rows.forEach(row => {
         html += `<tr><td>${row.id}</td><td>${row.directory}</td><td>${row.name}</td><td>${row.file}</td></tr>`;
@@ -93,7 +93,7 @@ app.get('/api/getDirectories', (req, res) => {
 
     // Créez le code HTML à renvoyer
     let html = '<!DOCTYPE html><html><head><title>Liste des répertoires</title></head><body>';
-    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Directory</th><th>Name</th></tr>';
+    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Parent directory</th><th>Name</th></tr>';
 
     rows.forEach(row => {
         html += `<tr><td>${row.id}</td><td>${row.directory}</td><td>${row.name}</td></tr>`;
