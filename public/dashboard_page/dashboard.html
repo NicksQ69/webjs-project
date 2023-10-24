@@ -2,6 +2,7 @@
 <html>
     <head>
         <link rel="stylesheet" href="/dashboard_page/styles.css">
+        <script src="../common_js/cookie.js"></script>
     </head>
     <body>
     <div id="container">
@@ -34,11 +35,21 @@
     </body>
 
     <script>
+        file_icon = '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="15" height="15" viewBox="0 0 50 50"> <path d="M 7 2 L 7 48 L 43 48 L 43 14.59375 L 42.71875 14.28125 L 30.71875 2.28125 L 30.40625 2 Z M 9 4 L 29 4 L 29 16 L 41 16 L 41 46 L 9 46 Z M 31 5.4375 L 39.5625 14 L 31 14 Z"></path></svg>';
+
+        const monCookieValue = decodeURIComponent(getCookie("current_folder"));
+        document.cookie = "current_folder" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
         function new_file(){
             //display a popup asking for the name of the new file
             var name = prompt("Enter the name of the new file with the extention, or the folder name", "New File");
-            
-            
+            //if name has a . then it's a file
+            if (name.includes(".")){
+                //
+            }else{
+                //
+            }
+
             
         }
     </script>
