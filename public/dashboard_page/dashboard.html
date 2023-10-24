@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/dashboard_page/styles.css">
+    </head>
+    <body>
+    <div id="container">
+        <div id="dashboard">
+            <div id="head_dashboard">
+                <div id="text_head">
+                <div>Cliquez sur un element pour effectuer une action</div>
+                </div>
+                <div id="btn_head_dashboard">
+                    <button id="btn_head" onclick="new_file()">New</button>
+                    <button id="btn_head">Upload</button>
+                </div>
+            </div>
+            <div id="path">
+                <span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16"> <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/> </svg>
+                </span>
+                <span>/</span>
+            </div>
+            <div id="table_content">
+                <table id="table_files">
+                    <tr> 
+                        <th id="name"> <input type="checkbox" id="check_all"> Name</th> 
+                        <th id="last_modified">Last Modified</th> 
+                        <th id="size">File Size</th> 
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    </body>
+
+    <script>
+        function new_file(){
+            //display a popup asking for the name of the new file
+            var name = prompt("Enter the name of the new file with the extention, or the folder name", "New File");
+            
+            
+            
+        }
+    </script>
+
+</html>
