@@ -140,7 +140,6 @@ app.post('/creer_utilisateur', async (req, res) => {
 
     // hashage du mot de passe
     const pwdHash = await bcrypt.hash(password, 10);
-    console.log(username, password, pwdHash);
 
   // Insertion des données de l'utilisateur dans la base de données
   db.run(
@@ -237,7 +236,7 @@ passport.deserializeUser((username, done) => {
 passport.use(new LocalStrategy(
   (username, password, done) => {
     console.log("La stratégie Passport est exécutée.");
-    db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+    db.get('SELECT * FROM users WHERE username = ?', [username], async (err, row) => {
       if (err) {
         console.error('Erreur lors de la vérification du login :', err.message);
         return done(err);
@@ -246,13 +245,23 @@ passport.use(new LocalStrategy(
         console.log('Login inconnu');
         return done(null, false, { message: 'Login inconnu' });
       }
+      
       // On compare le mot de passe saisie avec le mot de passe Hash
-      if (bcrypt.compare(password, row.password)) {
-        console.log('Mot de passe incorrect');
-        return done(null, false, { message: 'Mot de passe incorrect' });
+      try {
+        const passwordMatch = await bcrypt.compare(password, row.password);
+    
+        if (!passwordMatch) {
+          console.log('Mot de passe incorrect');
+          return done(null, false, { message: 'Mot de passe incorrect' });
+        } else {
+          console.log('Login et mot de passe corrects');
+          return done(null, row);
+        }
+      } catch (compareError) {
+        console.error('Erreur lors de la comparaison des mots de passe :', compareError.message);
+        return done(compareError);
       }
-      console.log('Login et mot de passe corrects');
-      return done(null, row);
+      
     });
   }
 ));
