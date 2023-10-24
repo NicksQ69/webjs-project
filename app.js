@@ -7,7 +7,8 @@ import sqlite3 from 'sqlite3';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import SQLiteStore from 'connect-sqlite3';
-import fs from 'fs';
+import fs from 'node:fs';
+import bcrypt from 'bcrypt';
 
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
@@ -67,7 +68,7 @@ app.get('/api/getFiles', (req, res) => {
 
     // Créez le code HTML à renvoyer
     let html = '<!DOCTYPE html><html><head><title>Liste des fichiers</title></head><body>';
-    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Directory</th><th>Name</th><th>File</th></tr>';
+    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Parent directory</th><th>Name</th><th>File</th></tr>';
 
     rows.forEach(row => {
         html += `<tr><td>${row.id}</td><td>${row.directory}</td><td>${row.name}</td><td>${row.file}</td></tr>`;
@@ -93,7 +94,7 @@ app.get('/api/getDirectories', (req, res) => {
 
     // Créez le code HTML à renvoyer
     let html = '<!DOCTYPE html><html><head><title>Liste des répertoires</title></head><body>';
-    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Directory</th><th>Name</th></tr>';
+    html += '<div id="dataContainer"><table><tr><th>ID</th><th>Parent directory</th><th>Name</th></tr>';
 
     rows.forEach(row => {
         html += `<tr><td>${row.id}</td><td>${row.directory}</td><td>${row.name}</td></tr>`;
@@ -132,12 +133,14 @@ const sqliteStore = new SQLiteStore(session)({
 // ---- Création d'un nouvel utilisateur ----
 
 // Définition d'une route pour gérer la soumission de formulaire
-app.post('/creer_utilisateur', (req, res) => {
-  // Récupération des données du formulaire à partir de la demande POST
-  const username = req.body.username;
-  const password = req.body.password;
+app.post('/creer_utilisateur', async (req, res) => {
+    // Récupération des données du formulaire à partir de la demande POST
+    const username = req.body.username;
+    const password = req.body.password.toString();
 
-  console.log(username, password);
+    // hashage du mot de passe
+    const pwdHash = await bcrypt.hash(password, 10);
+    console.log(username, password, pwdHash);
 
   // Insertion des données de l'utilisateur dans la base de données
   db.run(
@@ -155,10 +158,10 @@ app.post('/creer_utilisateur', (req, res) => {
         res.redirect("/create_user");
       }else{
 
-        // Insertion de l'utilisateur dans la base de donnée
+        // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
         db.run(
           'INSERT INTO users (username, password) VALUES (?, ?)',
-          [username, password],
+          [username, pwdHash],
   
           (err) => {
               if (err) {
@@ -243,7 +246,8 @@ passport.use(new LocalStrategy(
         console.log('Login inconnu');
         return done(null, false, { message: 'Login inconnu' });
       }
-      if (row.password != password) {
+      // On compare le mot de passe saisie avec le mot de passe Hash
+      if (bcrypt.compare(password, row.password)) {
         console.log('Mot de passe incorrect');
         return done(null, false, { message: 'Mot de passe incorrect' });
       }
