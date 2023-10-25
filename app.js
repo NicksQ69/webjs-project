@@ -7,7 +7,7 @@ import sqlite3 from "sqlite3";
 import session from "express-session";
 import bodyParser from "body-parser";
 import SQLiteStore from "connect-sqlite3";
-import fs from "node:fs";
+import fs from "fs";
 import bcrypt from "bcrypt";
 
 // Configuration de l'application Express pour traiter les données de formulaire
@@ -23,11 +23,6 @@ app.use(express.static(__public));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // ---- Routes ----
-
-// Route vers la page principale
-app.get("/", function (request, response) {
-  response.sendFile(__public + "/login_page/login.html");
-});
 
 // Créer une route pour récupérer les Users de la bd
 app.get("/api/getUsers", (req, res) => {
@@ -161,7 +156,7 @@ app.post("/creer_utilisateur", async (req, res) => {
         res.redirect("/create_user");
       }
       if (row) {
-        console.error("Login déja existant");
+        console.error("Login déjà existant");
         res.cookie("user_creation", "Login déja existant");
         res.redirect("/create_user");
       }
@@ -225,7 +220,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     store: sqliteStore,
-    cookie: { maxAge: 6000000 }, // 10 minutes en millisecondes
+    cookie: { maxAge: 1000 * 60 * 60}, 
   })
 );
 
@@ -295,7 +290,7 @@ app.post(
     next(); // Continue with authentication
   },
   passport.authenticate("local", {
-    successRedirect: "/dashboard",
+    successRedirect: "/",
     failureRedirect: "/",
   }),
   (req, res) => {
@@ -319,30 +314,22 @@ app.get("/logout", (req, res) => {
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     // Si l'utilisateur est authentifié, continuez
-    return next();
+      return next();
   }
   // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
   res.cookie(
     "Authentification",
     "La session a expirée, veuillez vous reconnecter"
   );
+
   res.sendFile(__public + "/login_page/login.html");
 }
-
-app.get("/secret", ensureAuthenticated, function (req, res) {
-  res.sendFile(__public + "/login_page/secret_page.html");
-});
-
-app.get("/dashboard", ensureAuthenticated, function (req, res) {
-  res.sendFile(__public + "/dashboard_page/dashboard.html");
-});
 
 // ---- Routes ----
 
 // Route vers la page principale
 app.get("/", ensureAuthenticated, (req, res) => {
-  // res.sendFile(__public + "/user_page/index.html");
-  res.redirect("/dashboard");
+  res.sendFile(__public + "/dashboard_page/dashboard.html");
 });
 
 // Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
@@ -355,7 +342,7 @@ app.get("/create_user", function (request, response) {
 import { upload_settings } from "./config/upload.js";
 
 app.use((req, res, next) => {
-  const username = req.session.username;
+  const username = req.user.username;
   const upload = upload_settings(username);
 
   // Endpoint pour gérer l'upload des fichiers
@@ -364,7 +351,8 @@ app.use((req, res, next) => {
     ensureAuthenticated,
     upload.single("fileUpload"),
     (req, res) => {
-      res.send("Fichier téléchargé avec succès");
+      res.cookie("upload_status", "Fichier téléchargé avec succès")
+      res.redirect("/")
     }
   );
 
