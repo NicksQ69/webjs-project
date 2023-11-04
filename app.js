@@ -10,6 +10,10 @@ import SQLiteStore from "connect-sqlite3";
 import fs from "fs";
 import bcrypt from "bcrypt";
 
+import { getAPI } from "./config/api.js";
+
+// =============== PARAM / CONFIG ===============
+
 // Configuration de l'application Express pour traiter les données de formulaire
 const app = express();
 
@@ -21,92 +25,6 @@ const __public = __dirname + "/public";
 // Midleware
 app.use(express.static(__public));
 app.use(bodyParser.urlencoded({ extended: false }));
-
-// ---- Routes ----
-
-// Créer une route pour récupérer les Users de la bd
-app.get("/api/getUsers", (req, res) => {
-  const query = "SELECT * FROM users";
-  db.all(query, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-
-    // Créez le code HTML à renvoyer
-    let html =
-      "<!DOCTYPE html><html><head><title>Liste des utilisateurs</title></head><body>";
-    html +=
-      '<div id="dataContainer"><table><tr><th>Username</th><th>Password</th></tr>';
-
-    rows.forEach((row) => {
-      html += `<tr><td>${row.username}</td><td>${row.password}</td></tr>`;
-    });
-
-    html += "</table></div></body></html>";
-
-    // Afficher les données dans la console
-    console.log(rows);
-    // Renvoyez le code HTML
-    res.send(html);
-  });
-});
-
-// Créer une route pour récupérer les Files de la bd
-app.get("/api/getFiles", (req, res) => {
-  const query = "SELECT * FROM files";
-  db.all(query, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-
-    // Créez le code HTML à renvoyer
-    let html =
-      "<!DOCTYPE html><html><head><title>Liste des fichiers</title></head><body>";
-    html +=
-      '<div id="dataContainer"><table><tr><th>ID</th><th>Parent directory</th><th>Name</th><th>File</th></tr>';
-
-    rows.forEach((row) => {
-      html += `<tr><td>${row.id}</td><td>${row.directory}</td><td>${row.name}</td><td>${row.file}</td></tr>`;
-    });
-
-    html += "</table></div></body></html>";
-
-    // Afficher les données dans la console
-    console.log(rows);
-    // Renvoyez le code HTML
-    res.send(html);
-  });
-});
-
-// Créer une route pour récupérer les Directories de la bd
-app.get("/api/getDirectories", (req, res) => {
-  const query = "SELECT * FROM directories";
-  db.all(query, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-
-    // Créez le code HTML à renvoyer
-    let html =
-      "<!DOCTYPE html><html><head><title>Liste des répertoires</title></head><body>";
-    html +=
-      '<div id="dataContainer"><table><tr><th>ID</th><th>Parent directory</th><th>Name</th></tr>';
-
-    rows.forEach((row) => {
-      html += `<tr><td>${row.id}</td><td>${row.directory}</td><td>${row.name}</td></tr>`;
-    });
-
-    html += "</table></div></body></html>";
-
-    // Afficher les données dans la console
-    console.log(rows);
-    // Renvoyez le code HTML
-    res.send(html);
-  });
-});
 
 // Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
 app.get("/create_user", function (request, response) {
@@ -131,6 +49,12 @@ const sqliteStore = new SQLiteStore(session)({
   dir: __dirname + "/database",
   concurrentDB: true,
 });
+
+// ==============================================
+
+// ---- API ----
+
+getAPI(app, db);
 
 // ---- Création d'un nouvel utilisateur ----
 
@@ -220,7 +144,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     store: sqliteStore,
-    cookie: { maxAge: 1000 * 60 * 60}, 
+    cookie: { maxAge: 1000 * 60 * 60 },
   })
 );
 
@@ -314,7 +238,7 @@ app.get("/logout", (req, res) => {
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     // Si l'utilisateur est authentifié, continuez
-      return next();
+    return next();
   }
   // Si l'utilisateur n'est pas authentifié, redirigez-le vers la page de connexion
   res.cookie(
@@ -342,19 +266,21 @@ app.get("/create_user", function (request, response) {
 import { upload_settings } from "./config/upload.js";
 
 app.use((req, res, next) => {
-  const username = req.user.username;
-  const upload = upload_settings(username);
+  if (req.url == "/upload") {
+    const username = req.user.username;
+    const upload = upload_settings(username);
 
-  // Endpoint pour gérer l'upload des fichiers
-  app.post(
-    "/upload",
-    ensureAuthenticated,
-    upload.single("fileUpload"),
-    (req, res) => {
-      res.cookie("upload_status", "Fichier téléchargé avec succès")
-      res.redirect("/")
-    }
-  );
+    // Endpoint pour gérer l'upload des fichiers
+    app.post(
+      "/upload",
+      ensureAuthenticated,
+      upload.single("fileUpload"),
+      (req, res) => {
+        res.cookie("upload_status", "Fichier téléchargé avec succès");
+        res.redirect("/");
+      }
+    );
+  }
 
   next();
 });
