@@ -3,14 +3,13 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import sqlite3 from "sqlite3";
 import session from "express-session";
 import bodyParser from "body-parser";
-import SQLiteStore from "connect-sqlite3";
 import fs from "fs";
 import bcrypt from "bcrypt";
 
 import { getAPI } from "./config/api.js";
+import { getDatabase } from "./config/database.js";
 
 // =============== PARAM / CONFIG ===============
 
@@ -26,115 +25,8 @@ const __public = __dirname + "/public";
 app.use(express.static(__public));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
-app.get("/create_user", function (request, response) {
-  response.sendFile(__public + "/login_page/create_user.html");
-});
-
 // Création d'une connexion à la base de données SQLite
-
-const db = new sqlite3.Database("database/database.db", (err) => {
-  if (err) {
-    console.error(
-      "Erreur lors de l'ouverture de la base de données :",
-      err.message
-    );
-  } else {
-    console.log("Connexion à la base de données réussie.");
-  }
-});
-
-const sqliteStore = new SQLiteStore(session)({
-  db: "sessions.db",
-  dir: __dirname + "/database",
-  concurrentDB: true,
-});
-
-// ==============================================
-
-// ---- API ----
-
-getAPI(app, db);
-
-// ---- Création d'un nouvel utilisateur ----
-
-// Définition d'une route pour gérer la soumission de formulaire
-app.post("/creer_utilisateur", async (req, res) => {
-  // Récupération des données du formulaire à partir de la demande POST
-  const username = req.body.username;
-  const password = req.body.password.toString();
-
-  // hashage du mot de passe
-  const pwdHash = await bcrypt.hash(password, 10);
-
-  // Insertion des données de l'utilisateur dans la base de données
-  db.get(
-    "SELECT * FROM users WHERE username = ?",
-    [username],
-    async (err, row) => {
-      if (err) {
-        console.error(
-          "Erreur lors de la vérification du Username :",
-          err.message
-        );
-        res.redirect("/create_user");
-      }
-      if (row) {
-        console.error("Login déjà existant");
-        res.cookie("user_creation", "Login déja existant");
-        res.redirect("/create_user");
-      }
-      // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
-      db.run(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
-        [username, pwdHash],
-
-        (err) => {
-          if (err) {
-            console.error(
-              "Erreur lors de l'insertion de l'utilisateur :",
-              err.message
-            );
-            res.cookie(
-              "user_creation",
-              "Erreur lors de l'insertion de l'utilisateur :"
-            );
-            res.redirect("/");
-          }
-          // Création du Dossier Source de l'utilisateur
-          fs.mkdir(__public + "/storage/root_" + username, (error) => {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log(username + " directory created successfully !!");
-            }
-          });
-
-          // Insertion du dossier source de l'utilisateur dans la base de donnée
-          db.run(
-            "INSERT INTO directories (name, owner) VALUES (?, ?)",
-            ["root_" + username, username],
-
-            (err) => {
-              if (err) {
-                console.error(
-                  "Erreur lors de l'insertion du Dossier :",
-                  err.message
-                );
-                res.redirect("/");
-              } else {
-                console.log("Dossier créé avec succès.");
-              }
-              res.redirect("/");
-            }
-          );
-          console.log("Utilisateur créé avec succès.");
-          res.cookie("user_creation", "Utilisateur créé avec succès.");
-        }
-      );
-    }
-  );
-});
+const [db,sqliteStore] = getDatabase();
 
 // ---- Gestion du login ----
 
@@ -222,6 +114,13 @@ app.post(
   }
 );
 
+// ==============================================
+
+// Ouverture du fichier html du formulaire de création d'un nouvel utilisateur
+app.get("/create_user", function (request, response) {
+  response.sendFile(__public + "/login_page/create_user.html");
+});
+
 app.get("/logout", (req, res) => {
   // Détruit la session de l'utilisateur
   req.session.destroy((err) => {
@@ -233,6 +132,90 @@ app.get("/logout", (req, res) => {
     // Redirigez l'utilisateur vers la page de connexion ou une autre page appropriée
     res.redirect("/");
   });
+});
+
+// ---- API ----
+
+getAPI(app, db);
+
+// ---- Création d'un nouvel utilisateur ----
+
+// Définition d'une route pour gérer la soumission de formulaire
+app.post("/creer_utilisateur", async (req, res) => {
+  // Récupération des données du formulaire à partir de la demande POST
+  const username = req.body.username;
+  const password = req.body.password.toString();
+
+  // hashage du mot de passe
+  const pwdHash = await bcrypt.hash(password, 10);
+
+  // Insertion des données de l'utilisateur dans la base de données
+  db.get(
+    "SELECT * FROM users WHERE username = ?",
+    [username],
+    async (err, row) => {
+      if (err) {
+        console.error(
+          "Erreur lors de la vérification du Username :",
+          err.message
+        );
+        res.redirect("/create_user");
+      }
+      if (row) {
+        console.error("Login déjà existant");
+        res.cookie("user_creation", "Login déja existant");
+        res.redirect("/create_user");
+      }
+      // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
+      db.run(
+        "INSERT INTO users (username, password) VALUES (?, ?)",
+        [username, pwdHash],
+
+        (err) => {
+          if (err) {
+            console.error(
+              "Erreur lors de l'insertion de l'utilisateur :",
+              err.message
+            );
+            res.cookie(
+              "user_creation",
+              "Erreur lors de l'insertion de l'utilisateur :"
+            );
+            res.redirect("/");
+          }
+          // Création du Dossier Source de l'utilisateur
+          fs.mkdir(__public + "/storage/root_" + username, (error) => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log(username + " directory created successfully !!");
+            }
+          });
+
+          // Insertion du dossier source de l'utilisateur dans la base de donnée
+          db.run(
+            "INSERT INTO directories (name, owner) VALUES (?, ?)",
+            ["root_" + username, username],
+
+            (err) => {
+              if (err) {
+                console.error(
+                  "Erreur lors de l'insertion du Dossier :",
+                  err.message
+                );
+                res.redirect("/");
+              } else {
+                console.log("Dossier créé avec succès.");
+              }
+              res.redirect("/");
+            }
+          );
+          console.log("Utilisateur créé avec succès.");
+          res.cookie("user_creation", "Utilisateur créé avec succès.");
+        }
+      );
+    }
+  );
 });
 
 function ensureAuthenticated(req, res, next) {
