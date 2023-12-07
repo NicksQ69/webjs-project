@@ -13,8 +13,22 @@ export function getPath(app) {
 
   // Route vers la page principale
   app.get("/", ensureAuthenticated, (req, res) => {
+    res.redirect("/dashboard");
+  });
+  
+  // Route vers le dashboard
+  app.get("/dashboard", ensureAuthenticated, (req, res) => {
     res.sendFile(__public + "/dashboard_page/dashboard.html");
   });
+
+  // Route dynamique pour les dossiers imbriqués
+  app.get('/dashboard/:folder(*)', ensureAuthenticated, (req, res) => {
+  const folderPath = req.params.folder;
+  const folders = folderPath.split('/');
+  console.log(folders)
+  //found_dict_id(req.user.username, folders);
+  res.sendFile(__public + "/dashboard_page/dashboard.html");
+});
 
   // Route pour la création d'un nouvel utilisateur
   app.get("/create_user", function (request, response) {
