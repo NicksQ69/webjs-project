@@ -32,15 +32,15 @@ getLogin(app,db,sqliteStore);
 
 // ---- Gestion de l'API ----
 
-getAPI(app, db);
+getAPI(app,db);
 
 // ---- Gestion des routes ----
 
-getPath(app);
+getPath(app,db);
 
 // ---- Gestion de l'upload ----
 
-getUpload(app);
+getUpload(app,db);
 
 // ==============================================
 
