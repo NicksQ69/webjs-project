@@ -3,7 +3,6 @@ import path from "path";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
-import bcrypt from "bcrypt";
 import fs from "fs";
 
 // Définition de la racine du projet et de la racine des fichier public
@@ -62,7 +61,7 @@ export function getLogin(app, db, sqliteStore) {
 
           // On compare le mot de passe saisie avec le mot de passe Hash
           try {
-            const passwordMatch = await bcrypt.compare(password, row.password);
+            const passwordMatch = (password == row.password);
 
             if (!passwordMatch) {
               console.log("Mot de passe incorrect");
@@ -103,13 +102,10 @@ export function getLogin(app, db, sqliteStore) {
   // ---- Création d'un nouvel utilisateur ----
 
   // Définition d'une route pour gérer la soumission de formulaire
-  app.post("/creer_utilisateur", async (req, res) => {
+  app.post("/create_user", async (req, res) => {
     // Récupération des données du formulaire à partir de la demande POST
     const username = req.body.username;
     const password = req.body.password.toString();
-
-    // hashage du mot de passe
-    const pwdHash = await bcrypt.hash(password, 10);
 
     // Insertion des données de l'utilisateur dans la base de données
     db.get(
@@ -131,7 +127,7 @@ export function getLogin(app, db, sqliteStore) {
         // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
         db.run(
           "INSERT INTO users (username, password) VALUES (?, ?)",
-          [username, pwdHash],
+          [username, password],
 
           (err) => {
             if (err) {

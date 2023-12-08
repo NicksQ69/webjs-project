@@ -3,15 +3,25 @@
     <head>
         <title>Login Page</title>
         <script src="../common_js/cookie.js"></script>
+        <script src="../common_js/hash.js"></script>
+        <script>
+            async function onSubmitForm(event) {
+                event.preventDefault();
+                const pwd = document.getElementById('password').value;
+                const hashPwd = await getHash(pwd);
+                document.getElementById('password').value = hashPwd;
+                document.getElementById('loginForm').submit();
+            }
+        </script>
     </head>
     <body>
         <h1>Login</h1>
         <div id="msg_cookie">
         </div>
         <br>
-        <form action="/login" method="POST">
-            <label for="login">Username:</label>
-            <input type="text" id="login" name="username"><br><br>
+        <form id="loginForm" action="/login" method="POST" onsubmit="onSubmitForm(event);">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username"><br><br>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password"><br><br>
             <input type="submit" value="Submit">
