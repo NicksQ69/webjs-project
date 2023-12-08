@@ -1,6 +1,8 @@
 import { fileURLToPath } from "url";
 import path from "path";
 import multer from "multer";
+import { add_file } from "./queryDb.js";
+import cookie from 'cookie';
 
 import { ensureAuthenticated } from "./auth.js";
 
@@ -18,8 +20,9 @@ function upload_settings(username) {
     filename: function (req, file, cb) {
       cb(
         null,
-        file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+        Date.now() + file.originalname
       );
+      add_file(cookie.parse(req.headers.cookie || '').current_dict, file.originalname, username);
     },
   });
 

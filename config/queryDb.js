@@ -1,11 +1,13 @@
 import { getDatabase } from "./database.js";
 
 const [db, useless] = getDatabase();
-export function addFile(){
-    //ajoute un fichier dans la bd dans le dossier d'id 1
+
+export function add_file(parent_directory, name, owner){
+  console.log(parent_directory, name, owner)
+    //ajoute un fichier dans le bd
     db.run(
         "INSERT INTO files (parent_directory, name, file, owner) VALUES (?, ?, ?, ?)",
-        [2, "yes", 0, "a"],
+        [parent_directory, name, 0, owner],
         (err) => {
           if (err) {
             console.error(
@@ -19,25 +21,23 @@ export function addFile(){
     );
 }
 
-export function get_files(){
-    //retourne les fichiers du dossier d'id 1
-    db.all(
-        "SELECT * FROM files WHERE parent_directory = ?",
-        [1],
-        (err, rows) => {
+export function add_directory(parent_directory, name, owner){
+  console.log(parent_directory, name, owner)
+    //ajoute un dossier dans le bd
+    db.run(
+        "INSERT INTO directories (parent_directory, name, owner) VALUES (?, ?, ?)",
+        [parent_directory, name, owner],
+        (err) => {
           if (err) {
             console.error(
-              "Erreur lors de la récupération des fichiers :",
+              "Erreur lors de l'insertion du Dossier :",
               err.message
             );
           } else {
-            rows.forEach((row) => {
-              console.log(row);
-            });
+            console.log("Dossier créé avec succès.");
           }
         }
     );
-
 }
 
 /**
@@ -59,38 +59,61 @@ export function listFileOrFolderBySource(isFolder, parent_directory, callback) {
               err.message
             );
           } else {
+            for (const row of rows) {
+              console.log(row);
+            }
             return callback(null, rows);
           }
         }
     );
 }
 
-export function deleteFileOrFolder(app, __storage, isFolder, owner, name, parent_directory){
-    let source = isFolder ? "directories" : "files";
-    
-    const query = `DELETE FROM ${source} WHERE owner = ? AND name = ? AND parent_directory = ?`;
-    const parameters = [owner, name, parent_directory];
+export function modifyFileOrFolder(id, type, newName){
+  db.all(
+    "UPDATE "+type+" SET name = ? WHERE id = ?",
+    [newName, id],
+    (err, rows) => {
+      if (err) {
+        console.error(
+          "Erreur lors de la modification",
+          err.message
+        );
+      }
+    });
+}
 
-    if(isFolder){
-        // Récupération des fichiers contenu dans le dossier
-        listFile = listFileOrFolderBySource(app, true, owner, parent_directory)
-        
-        for (const file in listFile) {
-            fsPromises.rm(__storage+username+'/'+file)
+export function deleteFileOrFolder(id, type){    
+    db.all(
+      "DELETE FROM "+type+" WHERE id = ?",
+      [id],
+      (err, rows) => {
+        if (err) {
+          console.error(
+            "Erreur lors de la suppression",
+            err.message
+          );
         }
+      }
+  );
+}
 
-        // Supression récursives des sous dossiers 
-        // TO DO
+export function getIdOfDirectory(parent_directory, name_directory, callback){
+  db.get(
+      `SELECT id FROM directories WHERE parent_directory = ? AND name = ?`,
+      [parent_directory, name_directory],
+      async (err, row) => {
+        if (err) {
+          console.error(
+            "Erreur lors du dossier",
+            err.message
+          );
+          return done(err);
+        }
         
-    }else{
-        fsPromises.rm(__storage+username+'/'+name, (error) => {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log(name + " : Fichier supprimer avec succes !");
-            }
-        });
-    }
+        console.log(row.id);
+        return callback(null, row.id);
+      }
+  )
 }
 
 export function getRootByOwner(owner, callback){
