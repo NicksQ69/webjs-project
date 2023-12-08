@@ -2,12 +2,21 @@
 <html>
     <head>
         <title>Formulaire de création d'utilisateur</title>
+        <script src="../common_js/cookie.js"></script>
+        <script src="../common_js/hash.js"></script>
+        <script>
+            async function onSubmitForm(event) {
+                event.preventDefault();
+                const pwd = document.getElementById('password').value;
+                const hashPwd = await getHash(pwd);
+                document.getElementById('password').value = hashPwd;
+                document.getElementById('registerForm').submit();
+            }
+        </script>
     </head>
-    
     <body>
         <h1>Formulaire de création d'utilisateur</h1>
-
-        <form action="/creer_utilisateur" method="POST">
+        <form id="registerForm" action="/create_user" method="POST" onsubmit="onSubmitForm(event);">
             <label for="username">Nom utilisateur :</label>
             <input type="text" id="username" name="username" required><br><br>
 
@@ -24,18 +33,6 @@
 </html>
 
 <script>
-    // Fonction pour récupérer un cookie par son nom
-    function getCookie(name) {
-        const cookies = document.cookie.split('; ');
-        for (const cookie of cookies) {
-            const [cookieName, cookieValue] = cookie.split('=');
-            if (cookieName === name) {
-                return cookieValue;
-            }
-        }
-        return null;
-    }
-
     // Récupérer le cookie "monCookie"
     const monCookieValue = decodeURIComponent(getCookie("user_creation"));
     document.cookie = 'user_creation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -47,7 +44,6 @@
     if(monCookieValue != "null"){
         msg.textContent = ""+monCookieValue;
     }
-    
 </script>
 
 
