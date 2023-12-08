@@ -42,6 +42,7 @@
     "connect-ensure-login": "^0.1.1",
     "connect-mongo": "^5.1.0",
     "connect-sqlite3": "^0.9.13",
+    "cookie": "^0.6.0",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "jsonwebtoken": "^9.0.2",

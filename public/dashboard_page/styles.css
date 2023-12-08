@@ -14,10 +14,10 @@ body {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     padding-left: 10px;
     padding-top: 5px;
+    padding-bottom: 10px;
     margin-left: auto;
     margin-right: auto;
     width: 1200px;
-    height: 300px;
 }
 
 #head_dashboard {
@@ -69,21 +69,21 @@ td {
     border-collapse: collapse;
     border: 1px solid #acaaaa;
     padding: 5px;
-    width: 100%;
+    width: 1165px;
 }
 
 #name {
-    width: 70%;
     text-align: left;
+    width: 50%;
     background-color: ghostwhite;
 }
 
 #last_modified {
-    width: 20%;
+    width: 15%;
     background-color: ghostwhite;
 }
 
 #size {
-    width: 10%;
+    width: 8%;
     background-color: ghostwhite;
 }

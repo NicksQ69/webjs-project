@@ -41,7 +41,7 @@
         <div id="table_content">
           <table id="table_files">
             <tr>
-              <th id="name"><input type="checkbox" id="check_all" /> Name</th>
+              <th id="name"> Name</th>
               <th id="last_modified">Last Modified</th>
               <th id="size">File Size</th>
             </tr>
@@ -58,6 +58,36 @@
     if (cookie_upload != "null"){
       div_cookie.textContent = cookie_upload;
     }
+  </script>
+  <script>
+    fetch('/api/dashboard')
+    .then(response => response.json())
+    .then(data => {
+      // Utiliser directement les données JSON
+      console.log(data["list_files"]);
+      update_table(data["list_files"], data["list_dict"]);
+      // Faites ce que vous devez faire avec les données JSON
+    })
+    .catch(error => console.error("Erreur de récupération des données :", error));
+
+    function update_table(list_files, list_dict){
+      //pour chque ligne, on ajoute une ligne au tableau
+      for (var i = 0; i < list_files.length; i++) {
+        var tr = document.createElement("tr");
+        tr.setAttribute("id", "tr" + i);
+        document.getElementById("table_files").appendChild(tr);
+        //pour chaque colonne, on ajoute une colonne à la ligne
+        for (var j = 0; j < 3; j++) {
+          var td = document.createElement("td");
+          td.setAttribute("id", "td" + i + j);
+          document.getElementById("tr" + i).appendChild(td);
+        }
+        //on ajoute le nom du fichier
+        var td_name = document.getElementById("td" + i + 0);
+        td_name.innerHTML = file_icon + list_files[i]['name'];
+      }
+    }
+
   </script>
   <script>
     file_icon =
