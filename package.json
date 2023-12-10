@@ -32,7 +32,7 @@
     }
   ],
   "scripts": {
-    "dev": "rm -rf database && mkdir database && node createDatabase.js",
+    "dev": "rm -rf database && rm -rf public/storage && mkdir database && mkdir public/storage && node createDatabase.js",
     "start": "nodemon app.js"
   },
   "dependencies": {
