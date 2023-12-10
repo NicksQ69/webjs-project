@@ -3,7 +3,6 @@ import { getDatabase } from "./database.js";
 const [db, useless] = getDatabase();
 
 export function add_file(parent_directory, name, owner){
-  console.log(parent_directory, name, owner)
     //ajoute un fichier dans le bd
     db.run(
         "INSERT INTO files (parent_directory, name, file, owner) VALUES (?, ?, ?, ?)",
@@ -22,7 +21,6 @@ export function add_file(parent_directory, name, owner){
 }
 
 export function add_directory(parent_directory, name, owner){
-  console.log(parent_directory, name, owner)
     //ajoute un dossier dans le bd
     db.run(
         "INSERT INTO directories (parent_directory, name, owner) VALUES (?, ?, ?)",
@@ -59,9 +57,6 @@ export function listFileOrFolderBySource(isFolder, parent_directory, callback) {
               err.message
             );
           } else {
-            for (const row of rows) {
-              console.log(row);
-            }
             return callback(null, rows);
           }
         }
@@ -109,9 +104,13 @@ export function getIdOfDirectory(parent_directory, name_directory, callback){
           );
           return done(err);
         }
-        
-        console.log(row.id);
-        return callback(null, row.id);
+        //cas où le dossier n'existe pas car on reste dans le dossier courant (via création de fichier par exemple)
+        if (!row) {
+          return callback(null, null);
+        }else{
+          //cas où le dossier existe car on a changé de dossier
+          return callback(null, row.id);
+        }
       }
   )
 }

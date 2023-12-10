@@ -41,7 +41,6 @@ export function getPath(app) {
     //obtient le nom du dossier courant
     const cookies = cookie.parse(req.headers.cookie || '');
     const id_current_dict = cookies.current_dict;
-    console.log(id_current_dict)
     
     //requête pour obtenir les fichiers du dossier racine de l'utilisateur
     const list_files = await new Promise((resolve, reject) => {
@@ -82,8 +81,6 @@ export function getPath(app) {
       modifyFileOrFolder(file_id, type, file_new_name);
       res.redirect("back");
     });
-    
-//    console.log("list fichiers",list_files)
 
     //requête pour obtenir les dossier du dossier racine de l'utilisateur
     const list_dict = await new Promise((resolve, reject) => {
@@ -91,8 +88,6 @@ export function getPath(app) {
           resolve(list_dict);
         });
       });
-      console.log(list_dict)
-//      console.log("list dossiers",list_dict)
       res.json({"list_files": list_files, "list_dict": list_dict});
     });
 
@@ -108,7 +103,7 @@ export function getPath(app) {
     //on mets les infos du / dans un cookie
     res.cookie("current_dict", id_slash);
     res.cookie("current_path", "/");
-
+    res.cookie("in_folder", false);
     //on envoie la page
     res.sendFile(__public + "/dashboard_page/dashboard.html");
   });
@@ -120,8 +115,7 @@ export function getPath(app) {
 
   const folderPath = req.params.folder;
   const folders = folderPath.split('/');
-  console.log(folders)
-  
+
   const id_dict = await new Promise((resolve, reject) => {
     getIdOfDirectory(id_current_dict, folders[folders.length - 1],(err, id_dict) => {
         resolve(id_dict);
@@ -133,8 +127,11 @@ export function getPath(app) {
     current_path += folders[i] + "/";
   }
 
-  res.cookie("current_dict", id_dict);
+  if (id_dict != null){
+    res.cookie("current_dict", id_dict);
+  }
   res.cookie("current_path", current_path);
+  res.cookie("in_folder", true);
   res.sendFile(__public + "/dashboard_page/dashboard.html");
 });
 
