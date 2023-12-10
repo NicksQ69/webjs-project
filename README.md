@@ -41,3 +41,7 @@ Un aspect important du projet a été la mise en place d'une base de données ad
 Un autre point fort du projet a été la mise en œuvre d'un système d'authentification sécurisé. Le hachage du mot de passe côté client a été implémenté de manière à garantir que le mot de passe en clair ne serait jamais compromis. Cela a renforcé la sécurité du système, offrant une protection adéquate des informations sensibles des utilisateurs.
 
 Cependant, malgré ces accomplissements, le projet n'a pas été complètement achevé en raison de contraintes de temps. Les fonctionnalités liées aux solutions de téléchargement, à la manipulation des fichiers entre les répertoires, et d'autres aspects plus avancés du projet n'ont pas pu être intégrées. Malgré cela, le projet a permis une compréhension approfondie des concepts de base et des bonnes pratiques de développement web, fournissant une base solide pour de futures améliorations.
+
+## Vidéo de démonstration
+
+[https://youtu.be/mb-RkJcSGkg](https://youtu.be/mb-RkJcSGkg)
