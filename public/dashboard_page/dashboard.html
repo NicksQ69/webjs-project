@@ -20,11 +20,9 @@
           <div>
             <button id="logoutButton">Déconnexion</button>
             <script>
-              // Add this script in the head or at the end of the body
               document
                 .getElementById("logoutButton")
                 .addEventListener("click", function () {
-                  // Redirect to /logout when the button is clicked
                   window.location.href = "/logout";
                 });
             </script>
@@ -88,11 +86,7 @@
     fetch("/api/dashboard")
       .then((response) => response.json())
       .then((data) => {
-        // Utiliser directement les données JSON
-        console.log(data["list_files"]);
-        console.log(data["list_dict"]);
         update_table(data["list_files"], data["list_dict"]);
-        // Faites ce que vous devez faire avec les données JSON
       })
       .catch((error) =>
         console.error("Erreur de récupération des données :", error)
@@ -100,7 +94,7 @@
 
     function ask_for_new_name(id, name) {
       var new_name = prompt("Enter the new name of " + name, name);
-      //crée un cookie avec id et new_name
+
       document.cookie = "file_to_modify=" + id;
       document.cookie = "new_name=" + new_name;
       window.location.href = "/modify_file";
@@ -246,12 +240,10 @@
       "current_folder" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
     function new_file() {
-      //display a popup asking for the name of the new file
       var name = prompt(
         "Enter the name of the new file with the extention, or the folder name",
         "New File.txt"
       );
-      //va sur /api/new_file avec le nom du fichier en parametre
       if (name != null) {
         window.location.href = "/api/new_file?name=" + name;
       }

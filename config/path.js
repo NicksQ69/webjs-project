@@ -20,6 +20,7 @@ export function getPath(app, db) {
 
   // Route vers le dashboard
   app.get("/dashboard", ensureAuthenticated, async (req, res) => {
+    res.cookie("in_folder", true);
     //on recupere la racine de l'utilisateur pour la comparer au dossier courant pour savoir s'il est dans un dossier 
       const id_slash = await new Promise((resolve, reject) => {
         getRootByOwner(db, req.user.username, (err, id_slash) => {
@@ -54,12 +55,9 @@ export function getPath(app, db) {
         path = path.join("/");
         res.cookie("current_path", path + "/");
         //si le dossier courant n'est pas le même que la racine de l'utilisateur, on est dans un dossier
-        if (parent_id != id_slash) {
-          res.cookie("in_folder", true);
-        } else {
+        if (parent_id == id_slash) {
           res.cookie("in_folder", false);
         }
-
       }
       //si l'utilisateur à cliqué sur un dossier on augmente le chemin
       if (cookie.parse(req.headers.cookie || "").enter_folder == "true") {
@@ -74,7 +72,10 @@ export function getPath(app, db) {
         });
         res.cookie("current_path", cookie.parse(req.headers.cookie || "").current_path + name + "/");
         res.cookie("enter_folder", false);
-        res.cookie("in_folder", true);
+      }
+
+      if (cookie.parse(req.headers.cookie || "").current_dict == id_slash) {
+        res.cookie("in_folder", false);
       }
 
     //on envoie la page
