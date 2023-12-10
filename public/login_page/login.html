@@ -1,53 +1,60 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Login Page</title>
-        <script src="../common_js/cookie.js"></script>
-        <script src="../common_js/hash.js"></script>
-        <script>
-            async function onSubmitForm(event) {
-                event.preventDefault();
-                const pwd = document.getElementById('password').value;
-                const hashPwd = await getHash(pwd);
-                document.getElementById('password').value = hashPwd;
-                document.getElementById('loginForm').submit();
-            }
-        </script>
-    </head>
-    <body>
-        <h1>Login</h1>
-        <div id="msg_cookie">
-        </div>
-        <br>
-        <form id="loginForm" action="/login" method="POST" onsubmit="onSubmitForm(event);">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username"><br><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password"><br><br>
-            <input type="submit" value="Submit">
-        </form>
-        <div>
-            <br>
-            Vous n'avez pas de compte ? <a href="/create_user">Créer un compte</a>
-        </div>
-    </body>
+  <head>
+    <title>Login Page</title>
+    <link rel="stylesheet" href="/login_page/styles.css" />
+    <script src="../common_js/cookie.js"></script>
+    <script src="../common_js/hash.js"></script>
+    <script>
+      async function onSubmitForm(event) {
+        event.preventDefault();
+        const pwd = document.getElementById("password").value;
+        const hashPwd = await getHash(pwd);
+        document.getElementById("password").value = hashPwd;
+        document.getElementById("loginForm").submit();
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Login</h1>
+      <div id="msg_cookie"></div>
+      <form
+        id="loginForm"
+        action="/login"
+        method="POST"
+        onsubmit="onSubmitForm(event);"
+      >
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" />
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" />
+        <input type="submit" value="Submit" />
+      </form>
+      <div>
+        <br />Vous n'avez pas de compte ?
+        <a href="/create_user">Créer un compte</a>
+      </div>
+    </div>
+  </body>
 </html>
 
 <script>
-//cookie qui indique que la session a expiré
-const monCookieValue = decodeURIComponent(getCookie("authentification"));
-document.cookie = "authentification" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-//cookie qui indique qu'un user a été crée
-const cookieuser = decodeURIComponent(getCookie("user_creation"));
-document.cookie = "user_creation" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  //cookie qui indique que la session a expiré
+  const monCookieValue = decodeURIComponent(getCookie("authentification"));
+  document.cookie =
+    "authentification" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  //cookie qui indique qu'un user a été crée
+  const cookieuser = decodeURIComponent(getCookie("user_creation"));
+  document.cookie =
+    "user_creation" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-const div_cookie = document.getElementById("msg_cookie");
+  const div_cookie = document.getElementById("msg_cookie");
 
-if (monCookieValue != "null"){
+  if (monCookieValue != "null") {
     div_cookie.textContent = monCookieValue;
-}
-if (cookieuser != "null"){
+  }
+  if (cookieuser != "null") {
     div_cookie.textContent = cookieuser;
-}
-
+  }
 </script>

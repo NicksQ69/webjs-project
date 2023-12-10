@@ -2,7 +2,7 @@
 <html>
   <head>
     <link rel="stylesheet" href="/dashboard_page/styles.css" />
-    <script src="../common_js/cookie.js"></script>
+    <script src="/common_js/cookie.js"></script>
   </head>
   <body>
     <div id="container">
@@ -10,11 +10,27 @@
       <div id="dashboard">
         <div id="head_dashboard">
           <div id="text_head">
-            <div>Cliquez sur un element pour effectuer une action</div>
+            <div id="text">
+              Cliquez sur un élément pour effectuer une action
+            </div>
+            <button id="btn_1" hidden>Open</button>
+            <button id="btn_2" hidden>Delete</button>
+            <button id="btn_3" hidden>Modify</button>
+          </div>
+          <div>
+            <button id="logoutButton">Déconnexion</button>
+            <script>
+              // Add this script in the head or at the end of the body
+              document
+                .getElementById("logoutButton")
+                .addEventListener("click", function () {
+                  // Redirect to /logout when the button is clicked
+                  window.location.href = "/logout";
+                });
+            </script>
           </div>
           <div id="btn_head_dashboard">
-            <button id="btn_head" onclick="new_file()">New</button>
-                    <button id="btn_head">Upload</button>
+            <button id="btn_head" onclick="new_file()">Nouveau Fichier/Dossier</button>
             <form action="/upload" method="post" enctype="multipart/form-data">
               <input id="btn_head" type="file" name="fileUpload" />
               <button type="submit">Upload</button>
@@ -36,12 +52,12 @@
               />
             </svg>
           </span>
-          <span>/</span>
+          <span id="path_text"></span>
         </div>
         <div id="table_content">
           <table id="table_files">
             <tr>
-              <th id="name"><input type="checkbox" id="check_all" /> Name</th>
+              <th id="name">Name</th>
               <th id="last_modified">Last Modified</th>
               <th id="size">File Size</th>
             </tr>
@@ -53,15 +69,173 @@
 
   <script>
     const cookie_upload = decodeURIComponent(getCookie("upload_status"));
-    document.cookie = "upload_status" + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie =
+      "upload_status" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+    const cookie_in_folder = decodeURIComponent(getCookie("in_folder"));
+    document.cookie =
+      "in_folder" + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
     const div_cookie = document.getElementById("cookie_display");
-    if (cookie_upload != "null"){
+    if (cookie_upload != "null") {
       div_cookie.textContent = cookie_upload;
+    }
+
+    const cookie_path = decodeURIComponent(getCookie("current_path"));
+    document.getElementById("path_text").textContent = cookie_path;
+  </script>
+  <script>
+    fetch("/api/dashboard")
+      .then((response) => response.json())
+      .then((data) => {
+        // Utiliser directement les données JSON
+        console.log(data["list_files"]);
+        console.log(data["list_dict"]);
+        update_table(data["list_files"], data["list_dict"]);
+        // Faites ce que vous devez faire avec les données JSON
+      })
+      .catch((error) =>
+        console.error("Erreur de récupération des données :", error)
+      );
+
+    function ask_for_new_name(id, name) {
+      var new_name = prompt("Enter the new name of " + name, name);
+      //crée un cookie avec id et new_name
+      document.cookie = "file_to_modify=" + id;
+      document.cookie = "new_name=" + new_name;
+      window.location.href = "/modify_file";
+    }
+
+    function display_interactions(id, name) {
+      if (id.includes("d")) {
+        //c'est un dossier
+        document.getElementById("text").hidden = true;
+        document.getElementById("btn_1").innerHTML = "Open " + name;
+        document.getElementById("btn_1").hidden = false;
+        document
+          .getElementById("btn_1")
+          .setAttribute(
+            "onclick",
+            "window.location.href = window.location.href + '/" + name + "'"
+          );
+        document.getElementById("btn_2").innerHTML = "Delete " + name;
+        document.getElementById("btn_2").hidden = false;
+        document
+          .getElementById("btn_2")
+          .setAttribute(
+            "onclick",
+            "window.location.href = '/delete_file?id=" + id + "'"
+          );
+        document.getElementById("btn_3").innerHTML = "Modify " + name;
+        document.getElementById("btn_3").hidden = false;
+        document
+          .getElementById("btn_3")
+          .setAttribute(
+            "onclick",
+            "ask_for_new_name('" + id + "', '" + name + "')"
+          );
+      } else {
+        //c'est un fichier
+        document.getElementById("text").hidden = true;
+        document.getElementById("btn_1").hidden = true;
+        document.getElementById("btn_2").innerHTML = "Delete " + name;
+        document.getElementById("btn_2").hidden = false;
+        document
+          .getElementById("btn_2")
+          .setAttribute(
+            "onclick",
+            "window.location.href = '/delete_file?id=" + id + "'"
+          );
+        document.getElementById("btn_3").innerHTML = "Modify " + name;
+        document.getElementById("btn_3").hidden = false;
+        document
+          .getElementById("btn_3")
+          .setAttribute(
+            "onclick",
+            "ask_for_new_name('" + id + "', '" + name + "')"
+          );
+      }
+    }
+
+    function go_back(path) {
+      var new_path = path.split("/");
+      new_path.pop();
+      new_path.pop();
+      new_path.shift();
+
+      var path = "/dashboard";
+      for (var i = 0; i < new_path.length; i++) {
+        path = path + "/" + new_path[i];
+      }
+      window.location.href = path;
+    }
+
+    function update_table(list_files, list_dict) {
+      //check si on est dans un dossier pour afficher le .. pour revenir en arriere
+      if (cookie_in_folder == "true") {
+        //Ajoute une ligne avec un dossier nommé ..
+        var tr = document.createElement("tr");
+        tr.setAttribute("id", "back");
+        tr.setAttribute("onclick", "go_back('" + cookie_path + "')");
+        document.getElementById("table_files").appendChild(tr);
+        var td = document.createElement("td");
+        td.setAttribute("id", "tdb");
+        document.getElementById("back").appendChild(td);
+        var td_name = document.getElementById("tdb");
+        td_name.innerHTML = dict_icon + "&nbsp;" + "..";
+      }
+
+      //pour chque ligne, on ajoute une ligne au tableau
+
+      for (var i = 0; i < list_dict.length; i++) {
+        var tr = document.createElement("tr");
+        let id = "d" + list_dict[i]["id"];
+        tr.setAttribute("id", id);
+        tr.setAttribute(
+          "onclick",
+          "display_interactions('" + id + "', '" + list_dict[i]["name"] + "')"
+        );
+        document.getElementById("table_files").appendChild(tr);
+        //pour chaque colonne, on ajoute une colonne à la ligne
+        for (var j = 0; j < 3; j++) {
+          var td = document.createElement("td");
+          td.setAttribute("id", "tdd" + (i + list_dict.length) + j);
+          document.getElementById("d" + list_dict[i]["id"]).appendChild(td);
+        }
+        //on ajoute le nom du dossier
+        var td_name = document.getElementById(
+          "tdd" + (i + list_dict.length) + 0
+        );
+        td_name.innerHTML = dict_icon + "&nbsp;" + list_dict[i]["name"];
+      }
+
+      for (var i = 0; i < list_files.length; i++) {
+        var tr = document.createElement("tr");
+        let id = "f" + list_files[i]["id"];
+        tr.setAttribute("id", id);
+        tr.setAttribute(
+          "onclick",
+          "display_interactions('" + id + "', '" + list_files[i]["name"] + "')"
+        );
+        document.getElementById("table_files").appendChild(tr);
+        //pour chaque colonne, on ajoute une colonne à la ligne
+        for (var j = 0; j < 3; j++) {
+          var td = document.createElement("td");
+          td.setAttribute("id", "tdf" + i + j);
+          document.getElementById("f" + list_files[i]["id"]).appendChild(td);
+        }
+        //on ajoute le nom du fichier
+        var td_name = document.getElementById("tdf" + i + 0);
+        td_name.innerHTML = file_icon + "&nbsp;" + list_files[i]["name"];
+      }
     }
   </script>
   <script>
     file_icon =
       '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="15" height="15" viewBox="0 0 50 50"> <path d="M 7 2 L 7 48 L 43 48 L 43 14.59375 L 42.71875 14.28125 L 30.71875 2.28125 L 30.40625 2 Z M 9 4 L 29 4 L 29 16 L 41 16 L 41 46 L 9 46 Z M 31 5.4375 L 39.5625 14 L 31 14 Z"></path></svg>';
+
+    dict_icon =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16"> <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"></path></svg>';
 
     const monCookieValue = decodeURIComponent(getCookie("current_folder"));
     document.cookie =
@@ -71,13 +245,11 @@
       //display a popup asking for the name of the new file
       var name = prompt(
         "Enter the name of the new file with the extention, or the folder name",
-        "New File"
+        "New File.txt"
       );
-      //if name has a . then it's a file
-      if (name.includes(".")) {
-        //
-      } else {
-        //
+      //va sur /api/new_file avec le nom du fichier en parametre
+      if (name != null) {
+        window.location.href = "/api/new_file?name=" + name;
       }
     }
   </script>

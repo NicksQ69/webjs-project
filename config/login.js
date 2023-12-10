@@ -8,7 +8,7 @@ import fs from "fs";
 // Définition de la racine du projet et de la racine des fichier public
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const __storage = path.resolve(__dirname, '../public/storage/root_');
+const __storage = path.resolve(__dirname, "../public/storage/root_");
 
 export function getLogin(app, db, sqliteStore) {
   // =============== PARAM / CONFIG ===============
@@ -61,7 +61,7 @@ export function getLogin(app, db, sqliteStore) {
 
           // On compare le mot de passe saisie avec le mot de passe Hash
           try {
-            const passwordMatch = (password == row.password);
+            const passwordMatch = password == row.password;
 
             if (!passwordMatch) {
               console.log("Mot de passe incorrect");
@@ -123,55 +123,56 @@ export function getLogin(app, db, sqliteStore) {
           console.error("Login déjà existant");
           res.cookie("user_creation", "Login déja existant");
           res.redirect("/create_user");
-        }
-        // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
-        db.run(
-          "INSERT INTO users (username, password) VALUES (?, ?)",
-          [username, password],
+        } else {
+          // Insertion de l'utilisateur dans la base de donnée avec son nom et son mot de passe hash
+          db.run(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            [username, password],
 
-          (err) => {
-            if (err) {
-              console.error(
-                "Erreur lors de l'insertion de l'utilisateur :",
-                err.message
-              );
-              res.cookie(
-                "user_creation",
-                "Erreur lors de l'insertion de l'utilisateur :"
-              );
-              res.redirect("/");
-            }
-            // Création du Dossier Source de l'utilisateur
-            fs.mkdir(__storage + username, (error) => {
-              if (error) {
-                console.log(error);
-              } else {
-                console.log(username + " directory created successfully !!");
-              }
-            });
-
-            // Insertion du dossier source de l'utilisateur dans la base de donnée
-            db.run(
-              "INSERT INTO directories (name, owner) VALUES (?, ?)",
-              ["root_" + username, username],
-
-              (err) => {
-                if (err) {
-                  console.error(
-                    "Erreur lors de l'insertion du Dossier :",
-                    err.message
-                  );
-                  res.redirect("/");
-                } else {
-                  console.log("Dossier créé avec succès.");
-                }
+            (err) => {
+              if (err) {
+                console.error(
+                  "Erreur lors de l'insertion de l'utilisateur :",
+                  err.message
+                );
+                res.cookie(
+                  "user_creation",
+                  "Erreur lors de l'insertion de l'utilisateur :"
+                );
                 res.redirect("/");
               }
-            );
-            console.log("Utilisateur créé avec succès.");
-            res.cookie("user_creation", "Utilisateur créé avec succès.");
-          }
-        );
+              // Création du Dossier Source de l'utilisateur
+              fs.mkdir(__storage + username, (error) => {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log(username + " directory created successfully !!");
+                }
+              });
+
+              // Insertion du dossier source de l'utilisateur dans la base de donnée
+              db.run(
+                "INSERT INTO directories (name, owner) VALUES (?, ?)",
+                ["root_" + username, username],
+
+                (err) => {
+                  if (err) {
+                    console.error(
+                      "Erreur lors de l'insertion du Dossier :",
+                      err.message
+                    );
+                    res.redirect("/");
+                  } else {
+                    console.log("Dossier créé avec succès.");
+                  }
+                  res.redirect("/");
+                }
+              );
+              console.log("Utilisateur créé avec succès.");
+              res.cookie("user_creation", "Utilisateur créé avec succès.");
+            }
+          );
+        }
       }
     );
   });
