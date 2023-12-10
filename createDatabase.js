@@ -48,6 +48,8 @@ const db = new sqlite3.Database('database/database.db', (err) => {
               name TEXT NOT NULL, 
               file BLOB NOT NULL,
               owner TEXT NOT NULL,
+              size INT default 0,
+              last_modified TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')),
               FOREIGN KEY(parent_directory) REFERENCES directories(id),
               FOREIGN KEY(owner) REFERENCES users(username)
             );
@@ -57,6 +59,21 @@ const db = new sqlite3.Database('database/database.db', (err) => {
               console.error('Erreur lors de la création de la table Files :', err.message);
             } else {
               console.log('Table Files créée avec succès.');
+              db.run(
+                `
+                CREATE TRIGGER IF NOT EXISTS update_last_modified
+                AFTER UPDATE ON files
+                FOR EACH ROW
+                BEGIN
+                    UPDATE files SET last_modified = strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime') WHERE id = NEW.id;
+                END;
+                `, (err) => {
+                if (err) {
+                    console.error("Erreur lors de la création du déclencheur", err.message);
+                } else {
+                    console.log("Déclencheur créé avec succès");
+                }
+            });
             }
           });
         }

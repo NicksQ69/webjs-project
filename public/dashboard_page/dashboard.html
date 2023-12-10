@@ -106,6 +106,12 @@
       window.location.href = "/modify_file";
     }
 
+    function enter_folder(id){
+      document.cookie = "enter_folder=true";
+      document.cookie = "current_dict="+id.substring(1);
+      window.location.href = "/dashboard";
+    }
+
     function display_interactions(id, name) {
       if (id.includes("d")) {
         //c'est un dossier
@@ -116,7 +122,7 @@
           .getElementById("btn_1")
           .setAttribute(
             "onclick",
-            "window.location.href = window.location.href + '/" + name + "'"
+            "enter_folder('" + id + "')"
           );
         document.getElementById("btn_2").innerHTML = "Delete " + name;
         document.getElementById("btn_2").hidden = false;
@@ -157,17 +163,9 @@
       }
     }
 
-    function go_back(path) {
-      var new_path = path.split("/");
-      new_path.pop();
-      new_path.pop();
-      new_path.shift();
-
-      var path = "/dashboard";
-      for (var i = 0; i < new_path.length; i++) {
-        path = path + "/" + new_path[i];
-      }
-      window.location.href = path;
+    function go_back() {
+      document.cookie = "exit_folder=true";
+      window.location.href = "/dashboard";
     }
 
     function update_table(list_files, list_dict) {
@@ -176,7 +174,7 @@
         //Ajoute une ligne avec un dossier nommé ..
         var tr = document.createElement("tr");
         tr.setAttribute("id", "back");
-        tr.setAttribute("onclick", "go_back('" + cookie_path + "')");
+        tr.setAttribute("onclick", "go_back()");
         document.getElementById("table_files").appendChild(tr);
         var td = document.createElement("td");
         td.setAttribute("id", "tdb");
@@ -227,6 +225,12 @@
         //on ajoute le nom du fichier
         var td_name = document.getElementById("tdf" + i + 0);
         td_name.innerHTML = file_icon + "&nbsp;" + list_files[i]["name"];
+        //on ajoute la date de derniere modification
+        var td_last_modified = document.getElementById("tdf" + i + 1);
+        td_last_modified.innerHTML = list_files[i]["last_modified"];
+        //on ajoute la taille du fichier
+        var td_size = document.getElementById("tdf" + i + 2);
+        td_size.innerHTML = list_files[i]["size"];
       }
     }
   </script>

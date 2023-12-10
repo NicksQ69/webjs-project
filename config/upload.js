@@ -1,7 +1,7 @@
 import { fileURLToPath } from "url";
 import path from "path";
 import multer from "multer";
-import { add_file } from "./queryDb.js";
+import { add_file_with_size } from "./queryDb.js";
 import cookie from 'cookie';
 
 import { ensureAuthenticated } from "./auth.js";
@@ -22,7 +22,6 @@ function upload_settings(db,username) {
         null,
         Date.now() + file.originalname
       );
-      add_file(db,cookie.parse(req.headers.cookie || '').current_dict, file.originalname, username);
     },
   });
 
@@ -42,6 +41,7 @@ export function getUpload(app,db) {
         ensureAuthenticated,
         upload.single("fileUpload"),
         (req, res) => {
+          add_file_with_size(db,cookie.parse(req.headers.cookie || '').current_dict, req.file.originalname, username, req.file.size);
           res.cookie("upload_status", "Fichier téléchargé avec succès");
           res.redirect("/");
         }

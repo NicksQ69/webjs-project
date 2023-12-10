@@ -3,7 +3,7 @@ import path from "path";
 import cookie from "cookie";
 
 import { ensureAuthenticated } from "./auth.js";
-import { getRootByOwner, getIdOfDirectory } from "./queryDb.js";
+import { getRootByOwner, get_parent_id_of_directory, get_name_of_directory } from "./queryDb.js";
 
 // Définition de la racine du projet et de la racine des fichier public
 const __filename = fileURLToPath(import.meta.url);
@@ -20,50 +20,64 @@ export function getPath(app, db) {
 
   // Route vers le dashboard
   app.get("/dashboard", ensureAuthenticated, async (req, res) => {
-    //requête pour obtenir l'id du dossier racine de l'utilisateur (en asyn avec promise question pratique)
-    const id_slash = await new Promise((resolve, reject) => {
-      getRootByOwner(db, req.user.username, (err, id_slash) => {
-        resolve(id_slash);
+    //on recupere la racine de l'utilisateur pour la comparer au dossier courant pour savoir s'il est dans un dossier 
+      const id_slash = await new Promise((resolve, reject) => {
+        getRootByOwner(db, req.user.username, (err, id_slash) => {
+          resolve(id_slash);
+        });
       });
-    });
-
-    //on mets les infos du / dans un cookie
-    res.cookie("current_dict", id_slash);
-    res.cookie("current_path", "/");
-    res.cookie("in_folder", false);
-    //on envoie la page
-    res.sendFile(__public + "/dashboard_page/dashboard.html");
-  });
-
-  // Route dynamique pour les dossiers imbriqués
-  app.get("/dashboard/:folder(*)", ensureAuthenticated, async (req, res) => {
-    var cookies = cookie.parse(req.headers.cookie || "");
-    var id_current_dict = cookies.current_dict || "Aucun ID trouvé";
-
-    const folderPath = req.params.folder;
-    const folders = folderPath.split("/");
-
-    const id_dict = await new Promise((resolve, reject) => {
-      getIdOfDirectory(
-        db,
-        id_current_dict,
-        folders[folders.length - 1],
-        (err, id_dict) => {
-          resolve(id_dict);
+      if (cookie.parse(req.headers.cookie || "").current_dict == undefined) {
+        res.cookie("current_dict", id_slash);
+        res.cookie("current_path", "/");
+        res.cookie("in_folder", false);
+      }
+      //si l'utilisateur à cliqué sur revenir en arrirère
+      if (cookie.parse(req.headers.cookie || "").exit_folder == "true") {
+        //on récupere l'id du répertoire parent
+        const parent_id = await new Promise((resolve, reject) => {
+          get_parent_id_of_directory(
+            db,
+            cookie.parse(req.headers.cookie || "").current_dict,
+            (err, parent_id) => {
+              resolve(parent_id);
+            }
+          );
+        });
+        //on applique ce parent comme le nouveau dossier courant
+        res.cookie("current_dict", parent_id);
+        res.cookie("exit_folder", false);
+        //on diminue le chemin
+        var path = cookie.parse(req.headers.cookie || "").current_path;
+        path = path.split("/");
+        path.pop();
+        path.pop();
+        path = path.join("/");
+        res.cookie("current_path", path + "/");
+        //si le dossier courant n'est pas le même que la racine de l'utilisateur, on est dans un dossier
+        if (parent_id != id_slash) {
+          res.cookie("in_folder", true);
+        } else {
+          res.cookie("in_folder", false);
         }
-      );
-    });
 
-    var current_path = "/";
-    for (var i = 0; i < folders.length; i++) {
-      current_path += folders[i] + "/";
-    }
+      }
+      //si l'utilisateur à cliqué sur un dossier on augmente le chemin
+      if (cookie.parse(req.headers.cookie || "").enter_folder == "true") {
+        const name = await new Promise((resolve, reject) => {
+          get_name_of_directory(
+            db,
+            cookie.parse(req.headers.cookie || "").current_dict,
+            (err, name) => {
+              resolve(name);
+            }
+          );
+        });
+        res.cookie("current_path", cookie.parse(req.headers.cookie || "").current_path + name + "/");
+        res.cookie("enter_folder", false);
+        res.cookie("in_folder", true);
+      }
 
-    if (id_dict != null) {
-      res.cookie("current_dict", id_dict);
-    }
-    res.cookie("current_path", current_path);
-    res.cookie("in_folder", true);
+    //on envoie la page
     res.sendFile(__public + "/dashboard_page/dashboard.html");
   });
 
