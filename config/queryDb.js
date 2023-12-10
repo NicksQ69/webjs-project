@@ -16,6 +16,24 @@ export function add_file(db,parent_directory, name, owner){
     );
 }
 
+export function add_file_with_size(db,parent_directory, name, owner, size){
+  //ajoute un fichier dans le bd
+  db.run(
+      "INSERT INTO files (parent_directory, name, file, owner, size) VALUES (?, ?, ?, ?, ?)",
+      [parent_directory, name, 0, owner, size],
+      (err) => {
+        if (err) {
+          console.error(
+            "Erreur lors de l'insertion du fichier :",
+            err.message
+          );
+        } else {
+          console.log("Fichier créé avec succès.");
+        }
+      }
+  );
+}
+
 export function add_directory(db,parent_directory, name, owner){
     //ajoute un dossier dans le bd
     db.run(
@@ -70,6 +88,18 @@ export function modifyFileOrFolder(db,id, type, newName){
         );
       }
     });
+    //update last modified last_modified = strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')
+    db.all(
+      "UPDATE "+type+" SET last_modified = ? WHERE id = ?",
+      [new Date().toISOString().slice(0, 19).replace('T', ' '), id],
+      (err, rows) => {
+        if (err) {
+          console.error(
+            "Erreur lors de la modification",
+            err.message
+          );
+        }
+      });
 }
 
 export function deleteFileOrFolder(db,id, type){    
@@ -84,6 +114,40 @@ export function deleteFileOrFolder(db,id, type){
           );
         }
       }
+  );
+}
+
+export function get_parent_id_of_directory(db,id, callback){
+  db.get(
+    "SELECT parent_directory FROM directories WHERE id = ?",
+    [id],
+    (err, row) => {
+      if (err) {
+        console.error(
+          "Erreur lors de la récupération du parent",
+          err.message
+        );
+      } else {
+        return callback(null, row.parent_directory);
+      }
+    }
+  );
+}
+
+export function get_name_of_directory(db,id, callback){
+  db.get(
+    "SELECT name FROM directories WHERE id = ?",
+    [id],
+    (err, row) => {
+      if (err) {
+        console.error(
+          "Erreur lors de la récupération du nom",
+          err.message
+        );
+      } else {
+        return callback(null, row.name);
+      }
+    }
   );
 }
 
