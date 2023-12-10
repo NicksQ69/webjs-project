@@ -96,6 +96,9 @@ export function getPath(app, db) {
       } else {
         console.log("Utilisateur déconnecté");
       }
+      //détruit les cookies
+      res.clearCookie("current_dict");
+      res.clearCookie("current_path");
       // Redirigez l'utilisateur vers la page de connexion ou une autre page appropriée
       res.redirect("/");
     });
